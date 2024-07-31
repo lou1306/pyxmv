@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "pyxmv"
+version = "0.1.0"
+description = "(Unofficial) Python interface to nuXmv"
+authors = ["Luca Di Stefano <luca.di.stefano@tuwien.ac.at>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pexpect = "^4.9.0"
+typer = "^0.12.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+pyxmv = "pyxmv.pyxmv:app"
