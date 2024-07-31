@@ -2,10 +2,10 @@ from enum import Enum
 from pathlib import Path
 from sys import exit, stderr
 
-from pyxmv.simulation_heuristics import RandomChoice, UserChoice
 import typer
 
 from .nuxmvint import NuXmvInt
+from .simulation_heuristics import RandomChoice, UserChoice
 
 
 app = typer.Typer()
