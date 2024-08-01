@@ -1,7 +1,20 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 from random import Random
 import time
 from typing import Sequence
+
+
+class HeuristicsEnum(str, Enum):
+    usr = "user"
+    rnd = "random"
+
+    def get(self, seed: int | float | None):
+        return {
+            HeuristicsEnum.usr: UserChoice(),
+            HeuristicsEnum.rnd: RandomChoice(seed)
+        }[self]
+
 
 
 class SimulationHeuristic(ABC):

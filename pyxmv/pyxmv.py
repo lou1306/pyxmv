@@ -1,26 +1,15 @@
-from enum import Enum
 import importlib.metadata
 from pathlib import Path
 from sys import exit, stderr
 
 import typer
 
+from .cli import HeuristicsEnum, HeuristicsTyper, SeedTyper, StepsTyper
 from .nuxmvint import NuXmvInt
-from .simulation_heuristics import RandomChoice, UserChoice
-
 
 app = typer.Typer()
 
 
-class HeuristicsEnum(str, Enum):
-    usr = "user"
-    rnd = "random"
-
-    def getClass(self):
-        return {
-            HeuristicsEnum.usr: UserChoice,
-            HeuristicsEnum.rnd: RandomChoice
-        }[self]
 @app.command()
 def version():
     """ Print version information and exit."""
@@ -34,15 +23,18 @@ def version():
 
 @app.command()
 def simulate(fname: Path,
-             steps: int = -1,
-             heuristics: HeuristicsEnum = HeuristicsEnum.usr):
+             steps: StepsTyper = 0,
+             seed: SeedTyper = None,
+             heuristics: HeuristicsTyper = HeuristicsEnum.usr):
+    """Simulate a nuxmv specification."""
     try:
-        heur = heuristics.getClass()
+        heur = heuristics.get(seed)
         nuxmv = NuXmvInt()
         nuxmv.msat_setup(str(fname))
         nuxmv.init()
+        steps = -1 if steps == 0 else steps
         while steps != 0:
-            nuxmv.simulate(heuristic=heur())
+            nuxmv.simulate(heuristic=heur)
             steps = steps - 1 if steps > 0 else -1
         else:
             print("Done")
