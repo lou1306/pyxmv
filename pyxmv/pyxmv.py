@@ -1,4 +1,5 @@
 from enum import Enum
+import importlib.metadata
 from pathlib import Path
 from sys import exit, stderr
 
@@ -20,6 +21,15 @@ class HeuristicsEnum(str, Enum):
             HeuristicsEnum.usr: UserChoice,
             HeuristicsEnum.rnd: RandomChoice
         }[self]
+@app.command()
+def version():
+    """ Print version information and exit."""
+    try:
+        print(importlib.metadata.version("pyxmv"))
+    except importlib.metadata.PackageNotFoundError:
+        print("This command only works if pyxmv is installed.")
+        print("Try 'poetry install'.")
+        exit(1)
 
 
 @app.command()
