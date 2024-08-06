@@ -1,5 +1,3 @@
-from io import StringIO
-from collections import deque
 import pexpect
 from shutil import which
 from .simulation_heuristics import UserChoice
@@ -28,11 +26,8 @@ class NuXmvInt:
     def __init__(self):
         if which("nuxmv") is None:
             raise FileNotFoundError("nuxmv not in PATH")
-        self.deque = deque()
-        self.out = StringIO()
         self.nuxmv = pexpect.spawn("nuxmv -int", encoding="utf-8")
         self.expect_prompt()
-        # self.nuxmv.logfile_read = self.out
 
     def expect_prompt(self, timeout=None) -> int:
         return self.nuxmv.expect_exact(NuXmvInt.PROMPT, timeout=timeout)
