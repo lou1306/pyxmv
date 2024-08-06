@@ -3,7 +3,7 @@ from shutil import which
 from .simulation_heuristics import UserChoice
 
 
-class NuXmvError(Exception):
+class PyXmvError(Exception):
     NO_TRACE = "No trace: constraint and initial state are inconsistent"
     ILLEGAL_OP = "illegal operand types"
     TYPE_SYSTEM_VIOLATION = "Type System Violation detected"
@@ -16,7 +16,11 @@ class NuXmvError(Exception):
             or cls.ILLEGAL_OP in line
             or cls.TYPE_SYSTEM_VIOLATION in line]
         if err_lines:
-            raise NuXmvError("\n".join(err_lines))
+            raise PyXmvError("\n".join(err_lines))
+
+
+class PyXmvTimeout(PyXmvError):
+    pass
 
 
 class NuXmvInt:
