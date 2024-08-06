@@ -34,7 +34,13 @@ class NuXmvInt:
         self.expect_prompt()
 
     def expect_prompt(self, timeout=None) -> int:
-        return self.nuxmv.expect_exact(NuXmvInt.PROMPT, timeout=timeout)
+        try:
+            return self.nuxmv.expect_exact(
+                NuXmvInt.PROMPT, timeout=timeout,
+                searchwindowsize=2*len(NuXmvInt.PROMPT))
+        except pexpect.TIMEOUT:
+            self.nuxmv.sendcontrol("c")
+            raise PyXmvTimeout()
 
     def __del__(self):
         self.nuxmv.kill(9)
