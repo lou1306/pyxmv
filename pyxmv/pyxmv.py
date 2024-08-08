@@ -30,7 +30,7 @@ def simulate(fname: Path,
     try:
         heur = heuristics.get(seed)
         nuxmv = NuXmvInt()
-        nuxmv.msat_setup(str(fname))
+        nuxmv.msat_setup(fname)
         nuxmv.init(h=heur)
         steps = -1 if steps == 0 else steps
         while steps != 0:
