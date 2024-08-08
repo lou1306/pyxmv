@@ -44,7 +44,6 @@ class NuXmvInt:
             raise PyXmvTimeout()
 
     def expect(self, prompts: list[str], timeout: int | None = None):
-        print("xxx")
         try:
             self.nuxmv.expect(prompts, timeout)
         except pexpect.TIMEOUT:
