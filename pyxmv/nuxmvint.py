@@ -5,17 +5,17 @@ from .simulation_heuristics import UserChoice
 
 
 class PyXmvError(Exception):
-    NO_TRACE = "No trace: constraint and initial state are inconsistent"
-    ILLEGAL_OP = "illegal operand types"
-    TYPE_SYSTEM_VIOLATION = "Type System Violation detected"
+    errs = (
+        "No trace: constraint and initial state are inconsistent",
+        "illegal operand types",
+        "Type System Violation detected",
+        "Nested next operator.")
 
     @classmethod
     def factory(cls, msg):
         err_lines = [
             line for line in msg.splitlines()
-            if cls.NO_TRACE in line
-            or cls.ILLEGAL_OP in line
-            or cls.TYPE_SYSTEM_VIOLATION in line]
+            if any(err in line for err in cls.errs)]
         if err_lines:
             raise PyXmvError("\n".join(err_lines))
 
@@ -44,6 +44,7 @@ class NuXmvInt:
             raise PyXmvTimeout()
 
     def expect(self, prompts: list[str], timeout: int | None = None):
+        print("xxx")
         try:
             self.nuxmv.expect(prompts, timeout)
         except pexpect.TIMEOUT:
