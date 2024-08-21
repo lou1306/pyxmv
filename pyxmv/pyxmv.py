@@ -1,11 +1,13 @@
 import importlib.metadata
-from pathlib import Path
-from sys import exit, stderr
+from functools import wraps
+from sys import exit
 
 import typer
 
-from .cli import HeuristicsEnum, HeuristicsTyper, SeedTyper, StepsTyper
-from .nuxmvint import NuXmvInt
+from .cli import (ErrorCode, HeuristicsEnum, HeuristicsTyper, PathTyper,
+                  SeedTyper, StepsTyper, TimeoutTyper)
+from .nuxmvint import NuXmvInt, PyXmvTimeout
+from .outcome import Outcome, Verdict
 
 app = typer.Typer()
 
@@ -42,3 +44,54 @@ def simulate(fname: Path,
     except Exception as e:
         print(f"[ERROR] {e}", file=stderr)
         exit(1)
+
+
+def handle_timeout(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except PyXmvTimeout:
+            print("Timeout")
+            ErrorCode.TIMEOUT.exit()
+    return wrapper
+
+
+def handle_outcomes(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        cex = func(*args, **kwargs)
+        fail = False
+        inconc = False
+        for outcome in Outcome.parse(cex):
+            print(outcome.message())
+            inconc |= outcome.verdict == Verdict.UNKNOWN
+            if outcome.verdict == Verdict.FALSE:
+                fail = True
+                print(outcome.trace.pprint())
+        if fail:
+            ErrorCode.VERIFICATION_FAILED.exit()
+        elif inconc:
+            ErrorCode.VERIFICATION_INCONCLUSIVE.exit()
+        ErrorCode.SUCCESS.exit()
+    return wrapper
+
+
+@app.command()
+@handle_timeout
+@handle_outcomes
+def ic3_invar(fname: PathTyper, timeout: TimeoutTyper = 0):
+    """Verifies invariant properties using IC3."""
+    nuxmv = NuXmvInt()
+    nuxmv.msat_setup(fname)
+    return nuxmv.ic3_invar(timeout=timeout or None)
+
+
+@app.command()
+@handle_timeout
+@handle_outcomes
+def ic3(fname: PathTyper, timeout: TimeoutTyper = 0):
+    """Verifies LTL properties using IC3."""
+    nuxmv = NuXmvInt()
+    nuxmv.msat_setup(fname)
+    return nuxmv.ic3(timeout=timeout or None)
