@@ -31,6 +31,8 @@ poetry install
 
 * Support alternative simulation heuristics
 
+* Support NuSMV
+
 # Licensing caveats
 
 `pyxmv` is MIT-licensed, but it is perfectly useless unless you obtain a copy
