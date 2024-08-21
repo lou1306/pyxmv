@@ -9,7 +9,7 @@ class PyXmvError(Exception):
         "No trace: constraint and initial state are inconsistent",
         "illegal operand types",
         "Type System Violation detected",
-        "Nested next operator.")
+        "Nested next operator")
 
     @classmethod
     def factory(cls, msg):
@@ -31,7 +31,7 @@ class NuXmvInt:
     def __init__(self):
         if which("nuxmv") is None:
             raise FileNotFoundError("nuxmv not in PATH")
-        self.nuxmv = pexpect.spawn("nuxmv -int", encoding="utf-8")
+        self.nuxmv = pexpect.spawn("nuxmv", ["-int"], encoding="utf-8")
         self.expect_prompt()
 
     def expect_prompt(self, timeout: int | None = None) -> int:

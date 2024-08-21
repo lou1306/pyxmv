@@ -16,7 +16,6 @@ class HeuristicsEnum(str, Enum):
         }[self]
 
 
-
 class SimulationHeuristic(ABC):
     @abstractmethod
     def choose_from(self, states: Sequence) -> int:
