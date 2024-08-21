@@ -27,10 +27,7 @@ poetry install
 
 # Future work
 
-* Parse states (from counterexamples or simulation traces) into structured data
-  for easier interop
-
-* Support verification
+* Parse simulation traces into structured data for easier interop
 
 * Support alternative simulation heuristics
 
