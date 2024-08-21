@@ -24,26 +24,22 @@ def version():
 
 
 @app.command()
-def simulate(fname: Path,
+def simulate(fname: PathTyper,
              steps: StepsTyper = 0,
              seed: SeedTyper = None,
              heuristics: HeuristicsTyper = HeuristicsEnum.usr):
-    """Simulate a nuxmv specification."""
-    try:
-        heur = heuristics.get(seed)
-        nuxmv = NuXmvInt()
-        nuxmv.msat_setup(fname)
-        nuxmv.init(h=heur)
-        steps = -1 if steps == 0 else steps
-        while steps != 0:
-            nuxmv.simulate(heuristic=heur)
-            steps = steps - 1 if steps > 0 else -1
-        else:
-            print("Done")
-            exit(0)
-    except Exception as e:
-        print(f"[ERROR] {e}", file=stderr)
-        exit(1)
+    """Simulates a nuxmv model."""
+    heur = heuristics.get(seed)
+    nuxmv = NuXmvInt()
+    nuxmv.msat_setup(fname)
+    nuxmv.init(h=heur)
+    steps = steps or -1
+    while steps != 0:
+        nuxmv.simulate(heuristic=heur)
+        steps = steps - 1 if steps > 0 else -1
+    else:
+        print("Done")
+        exit(ErrorCode.SUCCESS.value)
 
 
 def handle_timeout(func):
