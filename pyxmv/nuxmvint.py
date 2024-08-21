@@ -29,6 +29,7 @@ class NuXmvInt:
     STATE_SEP = "================= State ================="
 
     def __init__(self):
+        self.nuxmv = None
         if which("nuxmv") is None:
             raise FileNotFoundError("nuxmv not in PATH")
         self.nuxmv = pexpect.spawn("nuxmv", ["-int"], encoding="utf-8")
@@ -59,7 +60,8 @@ class NuXmvInt:
         return self.nuxmv.before
 
     def __del__(self):
-        self.nuxmv.kill(9)
+        if self.nuxmv is not None:
+            self.nuxmv.kill(9)
 
     def msat_setup(self, fname: Path, shown_states: int = 65535) -> None:
         cmds = (
