@@ -113,12 +113,6 @@ class NuXmvInt:
     def simulate(self, steps=1, c: str = "TRUE", heuristic=None) -> None:  # noqa: E501
         h = UserChoice() if heuristic is None else heuristic
         for _ in range(steps):
-            self.nuxmv.sendline(f"msat_simulate -i -a -k 1 -c {c}")
-            self.nuxmv.expect([
-                r"Choose a state from the above \(0-[0-9]+\): ",
-                "There's only one available state. Press Return to Proceed."
-            ])
-            print(self.nuxmv.before)
             states = self.get_successor_states(c)
             choice = h.choose_from(states)
             self.nuxmv.sendline(str(choice))
