@@ -68,14 +68,14 @@ class Trace:
             accum |= state
             yield accum
 
-    def pprint(self, *, full: bool = False, parse: bool = False) -> str:
-        result = [
-            f"Type: {self.trace_type}" if self.trace_type else "",
-            f"Description: {self.trace_description}" if self.trace_description else ""]  # noqa: E501
+    def pprint(self, *, full: bool = False, parse: bool = False) -> Iterable[str]:  # noqa: E501
+        yield f"""Trace Description: {self.trace_description or "N/A"}"""
+        yield f"""Trace Type: {self.trace_type or "N/A"}"""
         if self.states:
-            for state in self.get_states(full, parse):
-                result.append(str(state))
-        return "\n".join(result)
+            for i, state in enumerate(self.get_states(full, parse)):
+                yield f"  -> State: 1.{i} <-"
+                for k, v in state.items():
+                    yield f"    {k} = {v}"
 
 
 @dataclass
