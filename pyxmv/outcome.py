@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from collections.abc import Collection, Sequence
-from enum import StrEnum
+from enum import Enum
 from itertools import pairwise
 from typing import Iterable, Optional
 
 
-class Verdict(StrEnum):
+class Verdict(Enum):
     TRUE = "SUCCESSFUL"
     FALSE = "FAILED"
     UNKNOWN = "INCONCLUSIVE"
