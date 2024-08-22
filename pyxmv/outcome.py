@@ -32,9 +32,7 @@ class Trace:
         return state, loop_starts_next
 
     @staticmethod
-    def parse(text: str) -> Optional["Trace"]:
-        if "is true" in text or "is unknown" in text:
-            return None
+    def parse(text: str) -> "Trace":
         start = text.find("\nTrace Description:")
         body = text[start+1:]
         descr_type, *states = body.split("->")
@@ -112,7 +110,8 @@ class Outcome:
             for s in outcome_strings:
                 spec = spec.replace(s, "")
             spec = spec.strip()
-            trace = Trace.parse(text_slice)
+            if verdict == Verdict.FALSE:
+                trace = Trace.parse(text_slice)
             yield Outcome(logic, spec, verdict, trace, text_slice)
 
     def message(self) -> str:
