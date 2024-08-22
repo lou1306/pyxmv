@@ -1,32 +1,35 @@
 from enum import Enum
-from pathlib import Path
+from pathlib import Path as pathlib_Path
 from typing import Annotated
 
+from click import ClickException
 import typer
 
 from .simulation_heuristics import HeuristicsEnum
 
+Debug = Annotated[
+    bool,
+    typer.Option(help='Enable debug mode.')]
 
-PathTyper = Annotated[
-    Path,
-    typer.Argument(help="Path to a nuXmv model.")
-]
+Path = Annotated[
+    pathlib_Path,
+    typer.Argument(help="Path to a nuXmv model.")]
 
-HeuristicsTyper = Annotated[
+Heuristics = Annotated[
     HeuristicsEnum,
     typer.Option(help="How successor states are chosen.")]
 
-SeedTyper = Annotated[
+Seed = Annotated[
     int,
     typer.Option(
         help="Seed for the PRNG (if not set, system time will be used).",
         min=0)]
 
-StepsTyper = Annotated[
+Steps = Annotated[
     int,
     typer.Option(help="Simulation bound (set to 0 for no bound).", min=0)]
 
-TimeoutTyper = Annotated[
+Timeout = Annotated[
     int,
     typer.Option(help="Time limit (set to 0 for no limit).", min=0)]
 
@@ -57,6 +60,9 @@ class ErrorCode(Enum):
     TIMEOUT = 124
     """An operation timed out"""
 
-
-    def exit(self):
-        exit(self.value)
+    def exit(self, msg: str | None = None):
+        if msg:
+            exc = ClickException(msg)
+            exc.exit_code = self.value
+            raise exc
+        raise typer.Exit(self.value)
