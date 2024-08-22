@@ -1,7 +1,6 @@
 import importlib.metadata
 from functools import wraps
 from sys import exit
-from typing import Optional
 
 import typer
 
@@ -9,7 +8,9 @@ from . import cli
 from .nuxmvint import NuXmvInt, PyXmvError, PyXmvTimeout
 from .outcome import Outcome, Verdict
 
-app = typer.Typer(pretty_exceptions_show_locals=False)
+app = typer.Typer(
+    pretty_exceptions_show_locals=False,
+    rich_markup_mode="markdown")
 DEBUG = False
 
 
@@ -89,8 +90,13 @@ def handle_outcomes(func):
 @app.command()
 @handle_exceptions
 @handle_outcomes
-def ic3_invar(fname: cli.Path, timeout: cli.Timeout = 0, ltl: Optional[list[str]] = None):  # noqa: E501
-    """Verify invariant properties using IC3."""
+def ic3_invar(fname: cli.Path, timeout: cli.Timeout = 0, ltl: cli.Ltl = None):
+    """Verify invariant properties using IC3.
+
+    This is a wrapper around `check_property_as_invar_ic3`.\n\n
+
+    It only works for invariant properties, i.e., `G (predicate)`.
+    """
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
     ltl = ltl or [None]
@@ -101,8 +107,17 @@ def ic3_invar(fname: cli.Path, timeout: cli.Timeout = 0, ltl: Optional[list[str]
 @app.command()
 @handle_exceptions
 @handle_outcomes
-def ic3(fname: cli.Path, timeout: cli.Timeout = 0, ltl: Optional[list[str]] = None):  # noqa: E501
-    """Verify LTL properties using IC3."""
+def ic3(fname: cli.Path, timeout: cli.Timeout = 0, ltl: cli.Ltl = None):
+    """Verify LTL properties using IC3.
+
+    This is a wrapper around `check_ltlspec_ic3`.\n\n
+
+    **BEWARE**: This implmementation of IC3 can only verify a (violated)
+    property if it allows a finitely-representable (e.g., lasso-shaped) path as
+    a counterexample. If that is not the case, it will **NOT** terminate!\n\n
+
+    For safety properties, a workaround is to use `poetry ic3-invar` instead.
+    """
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
     ltl = ltl or [None]

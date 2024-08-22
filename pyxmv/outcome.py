@@ -2,7 +2,7 @@ from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from itertools import pairwise
-from typing import Iterable, Optional
+from typing import Iterable
 
 
 class Verdict(Enum):
@@ -83,7 +83,7 @@ class Outcome:
     logic: str
     specification: str
     verdict: Verdict
-    trace: Optional[Trace]
+    trace: Trace | None
     unparsed: str
 
     @staticmethod

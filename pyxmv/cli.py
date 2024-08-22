@@ -13,7 +13,7 @@ Debug = Annotated[
 
 Path = Annotated[
     pathlib_Path,
-    typer.Argument(help="Path to a nuXmv model.")]
+    typer.Argument(help="Path to a nuXmv model.", show_default=False)]
 
 Heuristics = Annotated[
     HeuristicsEnum,
@@ -24,6 +24,15 @@ Seed = Annotated[
     typer.Option(
         help="Seed for the PRNG (if not set, system time will be used).",
         min=0)]
+
+Ltl = Annotated[
+    list[str] | None,
+    typer.Option(
+        help=(
+            "LTL properties to verify (can be given multiple times.) "
+            "If none are given, will verify all properties "
+            "in the model file."
+        ))]
 
 Steps = Annotated[
     int,
