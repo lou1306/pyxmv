@@ -110,8 +110,7 @@ class Outcome:
             for s in outcome_strings:
                 spec = spec.replace(s, "")
             spec = spec.strip()
-            if verdict == Verdict.FALSE:
-                trace = Trace.parse(text_slice)
+            trace = Trace.parse(text_slice) if verdict == Verdict.FALSE else None  # noqa: E501
             yield Outcome(logic, spec, verdict, trace, text_slice)
 
     def message(self) -> str:
