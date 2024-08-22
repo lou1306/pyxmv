@@ -90,7 +90,10 @@ def handle_outcomes(func):
 @app.command()
 @handle_exceptions
 @handle_outcomes
-def ic3_invar(fname: cli.Path, timeout: cli.Timeout = 0, ltl: cli.Ltl = None):
+def ic3_invar(fname: cli.Path,
+              bound: cli.Bound = 0,
+              ltl: cli.Ltl = None,
+              timeout: cli.Timeout = 0):
     """Verify invariant properties using IC3.
 
     This is a wrapper around `check_property_as_invar_ic3`.\n\n
@@ -99,15 +102,18 @@ def ic3_invar(fname: cli.Path, timeout: cli.Timeout = 0, ltl: cli.Ltl = None):
     """
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
-    ltl = ltl or [None]
+    bound, ltl, timeout = bound or None, ltl or [None], timeout or None
     return '\n'.join(
-        nuxmv.ic3_invar(ltlspec=p, timeout=timeout or None) for p in ltl)
+        nuxmv.ic3_invar(bound=bound, ltlspec=p, timeout=timeout) for p in ltl)
 
 
 @app.command()
 @handle_exceptions
 @handle_outcomes
-def ic3(fname: cli.Path, timeout: cli.Timeout = 0, ltl: cli.Ltl = None):
+def ic3(fname: cli.Path,
+        bound: cli.Bound = 0,
+        ltl: cli.Ltl = None,
+        timeout: cli.Timeout = 0):
     """Verify LTL properties using IC3.
 
     This is a wrapper around `check_ltlspec_ic3`.\n\n
@@ -120,6 +126,6 @@ def ic3(fname: cli.Path, timeout: cli.Timeout = 0, ltl: cli.Ltl = None):
     """
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
-    ltl = ltl or [None]
+    bound, ltl, timeout = bound or None, ltl or [None], timeout or None
     return '\n'.join(
-        nuxmv.ic3(ltlspec=p, timeout=timeout or None) for p in ltl)
+        nuxmv.ic3(bound=bound, ltlspec=p, timeout=timeout) for p in ltl)

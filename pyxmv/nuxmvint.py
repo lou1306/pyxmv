@@ -102,14 +102,16 @@ class NuXmvInt:
         return self.get_output(timeout)
 
     @nuxmv_cmd
-    def ic3(self, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+    def ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+        bound = f"-k {bound}" if bound else ""
         ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
-        return (f"check_ltlspec_ic3 {ltlspec}"), timeout
+        return (f"check_ltlspec_ic3 {bound} {ltlspec}"), timeout
 
     @nuxmv_cmd
-    def ic3_invar(self, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+    def ic3_invar(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+        bound = f"-k {bound}" if bound else ""
         ltlspec = f"""-L "{ltlspec}" """ if ltlspec else ""
-        return f"check_property_as_invar_ic3 {ltlspec}", timeout
+        return f"check_property_as_invar_ic3 {bound} {ltlspec}", timeout
 
     @nuxmv_cmd
     def bmc(self, bound: int, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501

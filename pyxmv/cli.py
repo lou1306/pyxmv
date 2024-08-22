@@ -34,6 +34,11 @@ Ltl = Annotated[
             "in the model file."
         ))]
 
+Bound = Annotated[
+    int,
+    typer.Option(help="Verification bound (set to 0 for no bound).", min=0)]
+
+
 Steps = Annotated[
     int,
     typer.Option(help="Simulation bound (set to 0 for no bound).", min=0)]
