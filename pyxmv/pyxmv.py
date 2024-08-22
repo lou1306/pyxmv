@@ -2,6 +2,7 @@ import importlib.metadata
 import signal
 from functools import wraps
 from sys import exit
+import sys
 
 import typer
 
@@ -37,6 +38,8 @@ def version():
 
 def dump_trace(states, err_code: cli.ErrorCode):
     def inner(signum, frame):
+        if DEBUG and signum is not None:
+            print(f"Caught {signum=} with {frame=}", file=sys.stderr)
         if states:
             trace = Trace.of_states(states, "Simulation", "MSAT Simulation (generated with pyxmv)")  # noqa: E501
             print(*trace.pprint(), sep='\n')
