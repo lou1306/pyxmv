@@ -78,7 +78,7 @@ def handle_outcomes(func):
             inconc |= outcome.verdict == Verdict.UNKNOWN
             if outcome.verdict == Verdict.FALSE:
                 fail = True
-                print(outcome.trace.pprint())
+                print(*outcome.trace.pprint())
         if fail:
             cli.ErrorCode.VERIFICATION_FAILED.exit()
         elif inconc:
