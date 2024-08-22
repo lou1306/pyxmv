@@ -1,7 +1,7 @@
+import time
 from abc import ABC, abstractmethod
 from enum import Enum
 from random import Random
-import time
 from typing import Sequence
 
 

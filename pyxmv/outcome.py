@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 from collections.abc import Collection, Sequence
+from dataclasses import dataclass
 from enum import Enum
 from itertools import pairwise
 from typing import Iterable, Optional

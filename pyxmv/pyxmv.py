@@ -9,7 +9,6 @@ from . import cli
 from .nuxmvint import NuXmvInt, PyXmvError, PyXmvTimeout
 from .outcome import Outcome, Verdict
 
-
 app = typer.Typer(pretty_exceptions_show_locals=False)
 DEBUG = False
 

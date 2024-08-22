@@ -1,7 +1,9 @@
-from pathlib import Path
-import pexpect
-from shutil import which
 from functools import wraps
+from pathlib import Path
+from shutil import which
+
+import pexpect
+
 from .simulation_heuristics import UserChoice
 
 

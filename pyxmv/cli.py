@@ -2,8 +2,8 @@ from enum import Enum
 from pathlib import Path as pathlib_Path
 from typing import Annotated
 
-from click import ClickException
 import typer
+from click import ClickException
 
 from .simulation_heuristics import HeuristicsEnum
 
