@@ -32,13 +32,23 @@ class Trace:
         return state, loop_starts_next
 
     @staticmethod
+    def parse_list_of_str(states: Sequence[str]) -> tuple[dict[str, str], Sequence[int]]:  # noqa: E501
+        states, loop_starts = zip(*(Trace.parse_state(s) for s in states))
+        loop_starts = frozenset([i for i, x in enumerate(loop_starts) if x])
+        return states, loop_starts
+
+    @staticmethod
+    def of_states(states: Sequence[str], type_: str, descr: str) -> "Trace":
+        states, loop_starts = Trace.parse_list_of_str(states)
+        return Trace(descr, type_, states, loop_starts)
+
+    @staticmethod
     def parse(text: str) -> "Trace":
         start = text.find("\nTrace Description:")
         body = text[start+1:]
         descr_type, *states = body.split("->")
         states = [s.split("<-")[1] for s in states]
-        states, loop_starts = zip(*(Trace.parse_state(s) for s in states))
-        loop_starts = frozenset([i for i, x in enumerate(loop_starts) if x])
+        states, loop_starts = Trace.parse_list_of_str(states)
         descr, trace_type = descr_type.splitlines()[:2]
         descr = descr.split("Trace Description:")[1].strip()
         trace_type = trace_type.split("Type:")[1].strip()
