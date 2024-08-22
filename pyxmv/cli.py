@@ -31,8 +31,7 @@ Ltl = Annotated[
         help=(
             "LTL properties to verify (can be given multiple times.) "
             "If none are given, will verify all properties "
-            "in the model file."
-        ))]
+            "in the model file."))]
 
 Bound = Annotated[
     int,
@@ -48,7 +47,7 @@ Timeout = Annotated[
     typer.Option(help="Time limit (set to 0 for no limit).", min=0)]
 
 
-class ErrorCode(Enum):
+class ExitCode(Enum):
     """
     Exit codes for the pyXmv command-line utility.
 

@@ -2,7 +2,6 @@ from collections.abc import Sequence
 from functools import wraps
 from pathlib import Path
 from shutil import which
-import sys
 import re
 
 import pexpect

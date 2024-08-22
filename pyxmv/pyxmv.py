@@ -36,7 +36,7 @@ def version():
         exit(1)
 
 
-def dump_trace(states, err_code: cli.ErrorCode):
+def dump_trace(states, err_code: cli.ExitCode):
     def inner(signum, frame):
         if DEBUG and signum is not None:
             print(f"Caught {signum=} with {frame=}", file=sys.stderr)
@@ -57,7 +57,7 @@ def simulate(fname: cli.Path,
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
     states = []
-    signal.signal(signal.SIGTERM, dump_trace(states, cli.ErrorCode.TIMEOUT))
+    signal.signal(signal.SIGTERM, dump_trace(states, cli.ExitCode.TIMEOUT))
     try:
         states.append(nuxmv.init(h=heur))
         steps = steps or -1
@@ -69,7 +69,7 @@ def simulate(fname: cli.Path,
                 break
     except KeyboardInterrupt:
         pass
-    dump_trace(states, cli.ErrorCode.SUCCESS)(None, None)
+    dump_trace(states, cli.ExitCode.SUCCESS)(None, None)
 
 
 def handle_exceptions(func):
@@ -78,11 +78,11 @@ def handle_exceptions(func):
         try:
             return func(*args, **kwargs)
         except PyXmvTimeout:
-            cli.ErrorCode.TIMEOUT.exit("Timeout")
+            cli.ExitCode.TIMEOUT.exit("Timeout")
         except PyXmvError as err:
             if DEBUG:
                 raise err
-            cli.ErrorCode.INTERNAL_ERROR.exit(str(err))
+            cli.ExitCode.INTERNAL_ERROR.exit(str(err))
     return wrapper
 
 
@@ -99,10 +99,10 @@ def handle_outcomes(func):
                 fail = True
                 print(*outcome.trace.pprint())
         if fail:
-            cli.ErrorCode.VERIFICATION_FAILED.exit()
+            cli.ExitCode.VERIFICATION_FAILED.exit()
         elif inconc:
-            cli.ErrorCode.VERIFICATION_INCONCLUSIVE.exit()
-        cli.ErrorCode.SUCCESS.exit()
+            cli.ExitCode.VERIFICATION_INCONCLUSIVE.exit()
+        cli.ExitCode.SUCCESS.exit()
     return wrapper
 
 
