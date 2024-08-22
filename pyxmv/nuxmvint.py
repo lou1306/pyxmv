@@ -9,7 +9,9 @@ class PyXmvError(Exception):
         "No trace: constraint and initial state are inconsistent",
         "illegal operand types",
         "Type System Violation detected",
-        "Nested next operator")
+        "Nested next operator",
+        "TYPE ERROR",
+        "not well typed")
 
     @classmethod
     def factory(cls, msg):
