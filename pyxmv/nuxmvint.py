@@ -1,10 +1,15 @@
+from collections.abc import Sequence
 from functools import wraps
 from pathlib import Path
 from shutil import which
+import sys
+import re
 
 import pexpect
 
 from .simulation_heuristics import UserChoice
+
+re_state = re.compile(r"[0-9]+\) -------------------------")
 
 
 class PyXmvError(Exception):
@@ -32,6 +37,7 @@ class PyXmvTimeout(PyXmvError):
 class NuXmvInt:
     PROMPT = "nuXmv > "
     STATE_SEP = "================= State ================="
+    AVAIL_STATES = "***************  AVAILABLE STATES  *************"
 
     def __init__(self):
         self.nuxmv = None
@@ -44,6 +50,10 @@ class NuXmvInt:
     def __del__(self):
         if self.nuxmv is not None:
             self.nuxmv.kill(9)
+
+    def send_and_expect(self, cmd: str) -> None:
+        self.nuxmv.sendline(cmd)
+        self.nuxmv.expect_exact(cmd)
 
     def expect_prompt(self, timeout: int | None = None) -> int:
         try:
@@ -74,8 +84,7 @@ class NuXmvInt:
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             cmd, timeout = func(self, *args, **kwargs)
-            self.nuxmv.sendline(cmd)
-            self.nuxmv.expect_exact(cmd)
+            self.send_and_expect(cmd)
             return self.get_output(timeout)
         return wrapper
 
@@ -91,15 +100,16 @@ class NuXmvInt:
             PyXmvError.factory(self.nuxmv.before)
 
     def init(self, h, c: str | None = "TRUE", timeout: int | None = None) -> str:  # noqa: E501
-        self.nuxmv.sendline(f"""msat_pick_state -c "{c}" -v -i""")
+        self.send_and_expect(f"""msat_pick_state -c "{c}" -v -i""")
         output = self.get_output(timeout=timeout, prompts=[
             r"Choose a state from the above \(0-[0-9]+\): ",
             "There's only one available state. Press Return to Proceed."])
-        print(output)
         states = output.split(NuXmvInt.STATE_SEP)[1:]
         choice = h.choose_from(states)
-        self.nuxmv.sendline(str(choice))
-        return self.get_output(timeout)
+        chosen = re.sub(re_state, "", states[choice], 1).strip()
+        self.send_and_expect(str(choice))
+        self.get_output(timeout)
+        return chosen
 
     @nuxmv_cmd
     def ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
@@ -127,14 +137,19 @@ class NuXmvInt:
         self.nuxmv.expect([
             r"Choose a state from the above \(0-[0-9]+\): ",
             "There's only one available state. Press Return to Proceed."])
-        print(self.nuxmv.before)
         return self.nuxmv.before.split(NuXmvInt.STATE_SEP)[1:]
 
-    def simulate(self, steps=1, c: str = "TRUE", heuristic=None) -> None:
+    def simulate(self, steps=1, c: str = "TRUE", heuristic=None) -> tuple[Sequence[str], bool]:  # noqa: E501
         h = UserChoice() if heuristic is None else heuristic
+        result = []
         for _ in range(steps):
             states = self.get_successor_states(c)
             choice = h.choose_from(states)
-            self.nuxmv.sendline(str(choice))
+            chosen = re.sub(re_state, "", states[choice], 1).strip()
+            result.append(chosen)
+            self.send_and_expect(str(choice))
             self.expect_prompt()
-            print(self.nuxmv.before)
+            is_sat = "Simulation is SAT" in self.nuxmv.before
+            if not is_sat:
+                break
+        return result, is_sat

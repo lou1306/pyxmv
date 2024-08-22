@@ -1,4 +1,5 @@
 import importlib.metadata
+import signal
 from functools import wraps
 from sys import exit
 
@@ -6,7 +7,7 @@ import typer
 
 from . import cli
 from .nuxmvint import NuXmvInt, PyXmvError, PyXmvTimeout
-from .outcome import Outcome, Verdict
+from .outcome import Outcome, Trace, Verdict
 
 app = typer.Typer(
     pretty_exceptions_show_locals=False,
@@ -34,6 +35,15 @@ def version():
         exit(1)
 
 
+def dump_trace(states, err_code: cli.ErrorCode):
+    def inner(signum, frame):
+        if states:
+            trace = Trace.of_states(states, "Simulation", "MSAT Simulation (generated with pyxmv)")  # noqa: E501
+            print(*trace.pprint(), sep='\n')
+            err_code.exit()
+    return inner
+
+
 @app.command()
 def simulate(fname: cli.Path,
              steps: cli.Steps = 0,
@@ -43,14 +53,20 @@ def simulate(fname: cli.Path,
     heur = heuristics.get(seed)
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
-    nuxmv.init(h=heur)
-    steps = steps or -1
-    while steps != 0:
-        nuxmv.simulate(heuristic=heur)
-        steps = steps - 1 if steps > 0 else -1
-    else:
-        print("Done")
-        cli.ErrorCode.SUCCESS.exit()
+    states = []
+    signal.signal(signal.SIGTERM, dump_trace(states, cli.ErrorCode.TIMEOUT))
+    try:
+        states.append(nuxmv.init(h=heur))
+        steps = steps or -1
+        while steps != 0:
+            state, is_sat = nuxmv.simulate(heuristic=heur)
+            states.extend(state)
+            steps = steps - 1 if steps > 0 else -1
+            if not is_sat:
+                break
+    except KeyboardInterrupt:
+        pass
+    dump_trace(states, cli.ErrorCode.SUCCESS)(None, None)
 
 
 def handle_exceptions(func):

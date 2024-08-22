@@ -1,3 +1,4 @@
+import sys
 import time
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -35,13 +36,14 @@ class UserChoice(SimulationHeuristic):
         self.states = []
 
     def choose_from(self, states: Sequence) -> int:
+        for state in states:
+            print(state, file=sys.stderr)
         bound = len(states)
-        if bound == 0:
-            return 0
         choice = -1
         while not 0 <= choice < bound:
             try:
-                choice = int(input(f"Choose a state (0-{bound - 1}): "))
+                print(f"Choose a state (0-{bound - 1}): ", file=sys.stderr, end='')  # noqa: E501
+                choice = int(input())
             except ValueError:
                 choice = -1
                 continue
