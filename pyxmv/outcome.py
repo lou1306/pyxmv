@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from collections.abc import Collection, Sequence
 from enum import StrEnum
 from itertools import pairwise
@@ -36,7 +36,7 @@ class Trace:
         if "is true" in text or "is unknown" in text:
             return None
         start = text.find("\nTrace Description:")
-        head, body = text[:start-1], text[start+1:]
+        body = text[start+1:]
         descr_type, *states = body.split("->")
         states = [s.split("<-")[1] for s in states]
         states, loop_starts = zip(*(Trace.parse_state(s) for s in states))
@@ -44,9 +44,6 @@ class Trace:
         descr, trace_type = descr_type.splitlines()[:2]
         descr = descr.split("Trace Description:")[1].strip()
         trace_type = trace_type.split("Type:")[1].strip()
-        # spec = [x for x in head.splitlines() if x.startswith("--") and "specification" in x][0]  # noqa: E501
-        # logic = spec.split()[1]
-        # spec = spec.split("specification")[1].replace("is false", "").strip()
         return Trace(descr, trace_type, states, loop_starts)
 
     def parsed_states(self, full: bool = False) -> Iterable[dict[str, str | int | float]]:  # noqa: E501
