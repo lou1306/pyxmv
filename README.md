@@ -20,14 +20,28 @@ After cloning this repository:
 ```bash
 cd pyxmv
 poetry update
-poetry run pyxmv --help
-# Optionally, install in your current Python environment
 poetry install
+poetry run pyxmv --help
 ```
 
-# Future work
+## Install options
 
-* Parse simulation traces into structured data for easier interop
+```bash
+poetry install --only main  # Only installs packages that pyxmv needs to run
+poetry install              # Also install dev dependencies
+poetry install --all-extras # Installs all optional packages
+```
+
+Dev dependencies are packages that are only required for contributing or
+testing, such as [`mypy`](https://www.mypy-lang.org/). Since v0.3.0 we strive
+to have a codebase that can pass _at least_ `mypy --allow-redefinition`,
+_at least_ on commits tagged with a version number.
+
+At the moment the only optional package is
+[`rich`](https://github.com/Textualize/rich).
+When installed, it provides somewhat fancier output, especially on `--help`.
+
+# Future work
 
 * Support alternative simulation heuristics
 
