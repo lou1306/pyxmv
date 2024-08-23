@@ -47,7 +47,7 @@ class Trace:
         loop_starts_next = False
         for line in lines:
             line = line.strip()
-            loop_starts_next = line.startswith("-- Loop starts here")
+            loop_starts_next |= line.startswith("-- Loop starts here")
             if line and not line.startswith("--"):
                 lhs, rhs = line.split("=")
                 state[lhs.strip()] = rhs.strip()
@@ -57,7 +57,7 @@ class Trace:
     def parse_list_of_str(states: Sequence[str]) -> tuple[StrState, Sequence[int]]:  # noqa: E501
         """Parse a sequence of strings into states and loop indices."""
         states, loop_starts = zip(*(Trace.parse_state(s) for s in states))
-        loop_starts = frozenset([i for i, x in enumerate(loop_starts) if x])
+        loop_starts = frozenset([i+1 for i, x in enumerate(loop_starts) if x])
         return states, loop_starts
 
     @staticmethod
