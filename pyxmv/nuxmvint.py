@@ -125,7 +125,7 @@ class NuXmvInt:
     @nuxmv_cmd
     def bmc(self, bound: int, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
         ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
-        return f"msat_check_ltlspec-bmc -k {bound} {ltlspec}", timeout
+        return f"msat_check_ltlspec_bmc -k {bound} {ltlspec}", timeout
 
     @nuxmv_cmd
     def reset(self) -> tuple[str, None]:
