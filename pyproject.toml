@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyxmv"
-version = "0.2.0"
+version = "0.3.0"
 description = "(Unofficial) Python interface to nuXmv"
 authors = ["Luca Di Stefano <luca.di.stefano@tuwien.ac.at>"]
 license = "MIT"
