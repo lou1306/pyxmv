@@ -96,7 +96,10 @@ class Trace:
     def get_states(self, full: bool, parse: bool) -> Iterable[State]:
         if parse:
             yield from self.parsed_states(full)
-        yield from (self.full_states() if full else self.states)
+        elif full:
+            yield from self.full_states()
+        else:
+            yield from self.states
 
     def full_states(self) -> Iterable[StrState]:
         accum = {}
