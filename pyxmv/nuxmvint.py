@@ -127,9 +127,9 @@ class NuXmvInt:
         ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
         return f"msat_check_ltlspec-bmc -k {bound} {ltlspec}", timeout
 
-    def reset(self) -> None:
-        self.nuxmv.sendline("reset")
-        self.expect_prompt()
+    @nuxmv_cmd
+    def reset(self) -> tuple[str, None]:
+        return "reset", None
 
     def get_successor_states(self, c: str = "TRUE") -> list[str]:
         self.nuxmv.sendline(f"msat_simulate -i -a -k 1 -c {c}")
