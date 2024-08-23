@@ -4,7 +4,7 @@ from pathlib import Path
 from shutil import which
 import re
 
-import pexpect  # type: ignore
+import pexpect
 
 from .simulation_heuristics import UserChoice
 
