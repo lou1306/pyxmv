@@ -107,12 +107,14 @@ class Trace:
             accum |= state
             yield accum
 
-    def pprint(self, *, full: bool = False, parse: bool = False) -> Iterable[str]:  # noqa: E501
+    def pprint(self, *, full: bool = False) -> Iterable[str]:
         yield f"""Trace Description: {self.trace_description or "N/A"}"""
         yield f"""Trace Type: {self.trace_type or "N/A"}"""
         if self.states:
-            for i, state in enumerate(self.get_states(full, parse)):
-                yield f"  -> State: 1.{i} <-"
+            for i, state in enumerate(self.get_states(full, False)):
+                if i+1 in self.loop_indexes:
+                    yield "  -- Loop starts here:"
+                yield f"  -> State: 1.{i+1} <-"
                 for k, v in state.items():
                     yield f"    {k} = {v}"
 
