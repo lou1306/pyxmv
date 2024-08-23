@@ -11,15 +11,34 @@ class Verdict(Enum):
     UNKNOWN = "INCONCLUSIVE"
 
 
+Value = str | int | float | bool
+StrState = dict[str, str]
+"""String-valued state"""
+ParsedState = dict[str, Value]
+State = ParsedState | StrState
+
+
 @dataclass
 class Trace:
     trace_description: str
     trace_type: str
-    states: Sequence[dict[str, str]]
+    states: Sequence[StrState]
     loop_indexes: Collection[int]
 
     @staticmethod
-    def parse_state(text: str) -> tuple[dict[str, str], bool]:
+    def parse_state(text: str) -> tuple[StrState, bool]:
+        """Parse nuxmv output into a dictionary.
+
+        Args:
+            text (str): unparsed state from nuXmv
+
+        Returns:
+            result (tuple): A tuple containing
+
+            - the parsed state
+            - `True` if the _next_ state will be the start of a loop,
+              `False` otherwise
+        """
         lines = text.splitlines()
         state = {}
         loop_starts_next = False
@@ -32,18 +51,21 @@ class Trace:
         return state, loop_starts_next
 
     @staticmethod
-    def parse_list_of_str(states: Sequence[str]) -> tuple[dict[str, str], Sequence[int]]:  # noqa: E501
+    def parse_list_of_str(states: Sequence[str]) -> tuple[StrState, Sequence[int]]:  # noqa: E501
+        """Parse a sequence of strings into states and loop indices."""
         states, loop_starts = zip(*(Trace.parse_state(s) for s in states))
         loop_starts = frozenset([i for i, x in enumerate(loop_starts) if x])
         return states, loop_starts
 
     @staticmethod
     def of_states(states: Sequence[str], type_: str, descr: str) -> "Trace":
+        """Turn a sequence of strings into a Trace."""
         states, loop_starts = Trace.parse_list_of_str(states)
         return Trace(descr, type_, states, loop_starts)
 
     @staticmethod
     def parse(text: str) -> "Trace":
+        """Parse nuXmv output into a Trace"""
         start = text.find("\nTrace Description:")
         body = text[start+1:]
         descr_type, *states = body.split("->")
@@ -54,8 +76,8 @@ class Trace:
         trace_type = trace_type.split("Type:")[1].strip()
         return Trace(descr, trace_type, states, loop_starts)
 
-    def parsed_states(self, full: bool = False) -> Iterable[dict[str, str | int | float]]:  # noqa: E501
-        def try_parse(value: str) -> str | int | float:
+    def parsed_states(self, full: bool = False) -> Iterable[ParsedState]:
+        def try_parse(value: str) -> Value:
             if value in ("TRUE", "FALSE"):
                 return bool(value == "TRUE")
             try:
@@ -67,12 +89,12 @@ class Trace:
         for s in (self.full_states() if full else self.states):
             yield {k: try_parse(v) for k, v in s.items()}
 
-    def get_states(self, full, parse):
+    def get_states(self, full: bool, parse: bool) -> Iterable[State]:
         if parse:
             yield from self.parsed_states(full)
         yield from (self.full_states() if full else self.states)
 
-    def full_states(self) -> Iterable[dict[str, str]]:
+    def full_states(self) -> Iterable[StrState]:
         accum = {}
         for state in self.states:
             accum |= state

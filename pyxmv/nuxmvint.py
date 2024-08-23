@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from functools import wraps
 from pathlib import Path
 from shutil import which
@@ -79,7 +79,7 @@ class NuXmvInt:
         return self.nuxmv.before
 
     @staticmethod
-    def nuxmv_cmd(func) -> str:
+    def nuxmv_cmd(func: Callable[..., tuple[str, int | None]]) -> str:
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             cmd, timeout = func(self, *args, **kwargs)
@@ -88,6 +88,8 @@ class NuXmvInt:
         return wrapper
 
     def msat_setup(self, fname: Path, shown_states: int = 65535) -> None:
+        """Set up nuXmv for symbolic procedures."""
+
         cmds = (
             "reset",
             f"set shown_states {shown_states}",
