@@ -4,6 +4,8 @@ from enum import Enum
 from itertools import pairwise
 from typing import Iterable
 
+from .utils import fifo_cache
+
 
 class Verdict(Enum):
     TRUE = "SUCCESSFUL"
@@ -26,6 +28,7 @@ class Trace:
     loop_indexes: Collection[int]
 
     @staticmethod
+    @fifo_cache()
     def parse_state(text: str) -> tuple[StrState, bool]:
         """Parse nuxmv output into a dictionary.
 
@@ -77,6 +80,7 @@ class Trace:
         return Trace(descr, trace_type, states, loop_starts)
 
     def parsed_states(self, full: bool = False) -> Iterable[ParsedState]:
+        @fifo_cache(64)
         def try_parse(value: str) -> Value:
             if value in ("TRUE", "FALSE"):
                 return bool(value == "TRUE")
