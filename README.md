@@ -13,7 +13,7 @@ tools/pipelines/workflows.
 
 # Quickstart
 
-Besides nuXmv, the tool requires Python >= 3.9 and Poetry.
+Besides nuXmv, the tool requires Python >= 3.10 and Poetry.
 
 After cloning this repository:
 
