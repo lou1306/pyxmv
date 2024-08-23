@@ -64,7 +64,7 @@ def simulate(fname: cli.Path,
              steps: cli.Steps = 0,
              seed: cli.Seed = None,
              heuristics: cli.Heuristics = cli.HeuristicsEnum.usr,
-             format: cli.OutputFormat = cli.OutputFormat.PLAIN.value):
+             format: cli.Format = cli.OutputFormat.PLAIN):
     """Simulate a nuxmv model."""
     heur = heuristics.get(seed)
     nuxmv = NuXmvInt()
@@ -125,7 +125,7 @@ def ic3_invar(fname: cli.Path,
               bound: cli.Bound = 0,
               ltl: cli.Ltl = None,
               timeout: cli.Timeout = 0,
-              format: cli.OutputFormat = cli.OutputFormat.PLAIN.value):
+              format: cli.Format = cli.OutputFormat.PLAIN):
     """Verify invariant properties using IC3.
 
     This is a wrapper around `check_property_as_invar_ic3`.\n\n
@@ -147,7 +147,7 @@ def ic3(fname: cli.Path,
         bound: cli.Bound = 0,
         ltl: cli.Ltl = None,
         timeout: cli.Timeout = 0,
-        format: cli.OutputFormat = cli.OutputFormat.PLAIN.value):
+        format: cli.Format = cli.OutputFormat.PLAIN):
     """Verify LTL properties using IC3.
 
     This is a wrapper around `check_ltlspec_ic3`.\n\n

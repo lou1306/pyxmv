@@ -52,6 +52,10 @@ Timeout = Annotated[
     int,
     typer.Option(help="Time limit (set to 0 for no limit).", min=0)]
 
+Format = Annotated[
+    OutputFormat,
+    typer.Option("--format", help="Output format.")]
+
 
 class ExitCode(Enum):
     """
