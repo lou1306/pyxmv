@@ -1,7 +1,7 @@
 # `pyxmv` - (Unofficial) Python interface to nuXmv
 
 [nuXmv](https://nuxmv.fbk.eu/) is a state-of-the-art symbolic model checker for
-the analysis of finite- and infinite- state systems
+the analysis of finite- and infinite- state systems.
 
 `pyxmv` is a (very much WIP) wrapper for the nuXmv command-line interface; it
 aims at providing APIs for several features, and comes with a small CLI to
