@@ -72,11 +72,11 @@ class Trace:
         body = text[start+1:]
         descr_type, *states = body.split("->")
         states = [s.split("<-")[1] for s in states]
-        states, loop_starts = Trace.parse_list_of_str(states)
+        str_states, loop_starts = Trace.parse_list_of_str(states)
         descr, trace_type = descr_type.splitlines()[:2]
         descr = descr.split("Trace Description:")[1].strip()
         trace_type = trace_type.split("Type:")[1].strip()
-        return Trace(descr, trace_type, states, loop_starts)
+        return Trace(descr, trace_type, str_states, loop_starts)
 
     def parsed_states(self, full: bool = False) -> Iterable[ParsedState]:
         @fifo_cache(64)
