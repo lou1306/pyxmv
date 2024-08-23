@@ -7,6 +7,12 @@ from click import ClickException
 
 from .simulation_heuristics import HeuristicsEnum
 
+
+class OutputFormat(Enum):
+    JSON = "json"
+    PLAIN = "text"
+
+
 Debug = Annotated[
     bool,
     typer.Option(help='Enable debug mode.')]

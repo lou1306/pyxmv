@@ -1,9 +1,11 @@
 import importlib.metadata
 import signal
+import sys
+from collections.abc import Callable
 from functools import wraps
 from sys import exit
-import sys
 
+import msgspec
 import typer
 
 from . import cli
@@ -36,13 +38,23 @@ def version():
         exit(1)
 
 
-def dump_trace(states, err_code: cli.ExitCode):
+def dump(obj: Trace | Outcome, fmt: cli.OutputFormat) -> None:
+    if fmt == cli.OutputFormat.PLAIN:
+        print(*obj.pprint(), sep='\n')
+    elif fmt == cli.OutputFormat.JSON:
+        obj_dict = obj.as_dict(parse=True)
+        if "unparsed" in obj_dict:
+            del obj_dict["unparsed"]
+        print(msgspec.json.encode(obj_dict).decode())
+
+
+def dump_states(states, fmt: cli.OutputFormat, err_code: cli.ExitCode) -> None:
     def inner(signum, frame):
         if DEBUG and signum is not None:
             print(f"Caught {signum=} with {frame=}", file=sys.stderr)
         if states:
             trace = Trace.of_states(states, "Simulation", "MSAT Simulation (generated with pyxmv)")  # noqa: E501
-            print(*trace.pprint(), sep='\n')
+            dump(trace, fmt)
             err_code.exit()
     return inner
 
@@ -51,13 +63,14 @@ def dump_trace(states, err_code: cli.ExitCode):
 def simulate(fname: cli.Path,
              steps: cli.Steps = 0,
              seed: cli.Seed = None,
-             heuristics: cli.Heuristics = cli.HeuristicsEnum.usr):
+             heuristics: cli.Heuristics = cli.HeuristicsEnum.usr,
+             format: cli.OutputFormat = cli.OutputFormat.PLAIN.value):
     """Simulate a nuxmv model."""
     heur = heuristics.get(seed)
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
     states = []
-    signal.signal(signal.SIGTERM, dump_trace(states, cli.ExitCode.TIMEOUT))
+    signal.signal(signal.SIGTERM, dump_states(states, cli.ExitCode.TIMEOUT, format))  # noqa: E501
     try:
         states.append(nuxmv.init(h=heur))
         steps = steps or -1
@@ -69,7 +82,7 @@ def simulate(fname: cli.Path,
                 break
     except KeyboardInterrupt:
         pass
-    dump_trace(states, cli.ExitCode.SUCCESS)(None, None)
+    dump_states(states, cli.ExitCode.SUCCESS, format)(None, None)
 
 
 def handle_exceptions(func):
@@ -86,18 +99,17 @@ def handle_exceptions(func):
     return wrapper
 
 
-def handle_outcomes(func):
+def handle_outcomes(func: Callable[..., tuple[str, cli.OutputFormat]]):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        cex = func(*args, **kwargs)
+        cex, fmt = func(*args, **kwargs)
         fail = False
         inconc = False
         for outcome in Outcome.parse(cex):
-            print(outcome.message())
             inconc |= outcome.verdict == Verdict.UNKNOWN
             if outcome.verdict == Verdict.FALSE:
                 fail = True
-                print(*outcome.trace.pprint())
+                dump(outcome, fmt)
         if fail:
             cli.ExitCode.VERIFICATION_FAILED.exit()
         elif inconc:
@@ -112,7 +124,8 @@ def handle_outcomes(func):
 def ic3_invar(fname: cli.Path,
               bound: cli.Bound = 0,
               ltl: cli.Ltl = None,
-              timeout: cli.Timeout = 0):
+              timeout: cli.Timeout = 0,
+              format: cli.OutputFormat = cli.OutputFormat.PLAIN.value):
     """Verify invariant properties using IC3.
 
     This is a wrapper around `check_property_as_invar_ic3`.\n\n
@@ -122,8 +135,9 @@ def ic3_invar(fname: cli.Path,
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
     bound, ltl, timeout = bound or None, ltl or [None], timeout or None
-    return '\n'.join(
-        nuxmv.ic3_invar(bound=bound, ltlspec=p, timeout=timeout) for p in ltl)
+    return (
+        '\n'.join(nuxmv.ic3_invar(bound, p, timeout) for p in ltl),
+        format)
 
 
 @app.command()
@@ -132,7 +146,8 @@ def ic3_invar(fname: cli.Path,
 def ic3(fname: cli.Path,
         bound: cli.Bound = 0,
         ltl: cli.Ltl = None,
-        timeout: cli.Timeout = 0):
+        timeout: cli.Timeout = 0,
+        format: cli.OutputFormat = cli.OutputFormat.PLAIN.value):
     """Verify LTL properties using IC3.
 
     This is a wrapper around `check_ltlspec_ic3`.\n\n
@@ -146,5 +161,6 @@ def ic3(fname: cli.Path,
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
     bound, ltl, timeout = bound or None, ltl or [None], timeout or None
-    return '\n'.join(
-        nuxmv.ic3(bound=bound, ltlspec=p, timeout=timeout) for p in ltl)
+    return (
+        '\n'.join(nuxmv.ic3(bound, p, timeout) for p in ltl),
+        format)

@@ -161,11 +161,13 @@ class Outcome:
             trace = Trace.parse(text_slice) if verdict == Verdict.FALSE else None  # noqa: E501
             yield Outcome(logic, spec, verdict, trace, text_slice)
 
-    def message(self) -> str:
-        return (
+    def pprint(self) -> Iterable[str]:
+        yield (
             f"VERIFICATION {self.verdict.value} "
             f"for {self.specification} "
             f"({self.logic})")
+        yield from self.trace.pprint()
+
     def as_dict(self, *, full: bool = False, parse: bool = False) -> dict:
         def factory(kv_pairs):
             result = {k: v for k, v in kv_pairs if k != "trace"}
