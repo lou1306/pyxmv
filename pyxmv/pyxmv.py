@@ -48,7 +48,7 @@ def dump(obj: Trace | Outcome, fmt: cli.OutputFormat) -> None:
         print(msgspec.json.encode(obj_dict).decode())
 
 
-def dump_states(states, fmt: cli.OutputFormat, err_code: cli.ExitCode) -> None:
+def dump_states(states, fmt: cli.OutputFormat, err_code: cli.ExitCode):
     def inner(signum, frame):
         if DEBUG and signum is not None:
             print(f"Caught {signum=} with {frame=}", file=sys.stderr)
@@ -69,8 +69,8 @@ def simulate(fname: cli.Path,
     heur = heuristics.get(seed)
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
-    states = []
-    signal.signal(signal.SIGTERM, dump_states(states, cli.ExitCode.TIMEOUT, format))  # noqa: E501
+    states: list[str] = []
+    signal.signal(signal.SIGTERM, dump_states(states, format, cli.ExitCode.TIMEOUT))  # noqa: E501
     try:
         states.append(nuxmv.init(h=heur))
         steps = steps or -1
@@ -82,7 +82,7 @@ def simulate(fname: cli.Path,
                 break
     except KeyboardInterrupt:
         pass
-    dump_states(states, cli.ExitCode.SUCCESS, format)(None, None)
+    dump_states(states, format, cli.ExitCode.SUCCESS)(None, None)
 
 
 def handle_exceptions(func):
@@ -125,7 +125,7 @@ def ic3_invar(fname: cli.Path,
               bound: cli.Bound = 0,
               ltl: cli.Ltl = None,
               timeout: cli.Timeout = 0,
-              format: cli.Format = cli.OutputFormat.PLAIN):
+              fmt: cli.Format = cli.OutputFormat.PLAIN):
     """Verify invariant properties using IC3.
 
     This is a wrapper around `check_property_as_invar_ic3`.\n\n
@@ -134,10 +134,12 @@ def ic3_invar(fname: cli.Path,
     """
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
-    bound, ltl, timeout = bound or None, ltl or [None], timeout or None
-    return (
-        '\n'.join(nuxmv.ic3_invar(bound, p, timeout) for p in ltl),
-        format)
+    b, to = bound or None, timeout or None
+    result = (
+        '\n'.join(nuxmv.ic3_invar(b, p, to) for p in ltl)
+        if ltl is not None
+        else nuxmv.ic3_invar(b, None, to))
+    return result, fmt
 
 
 @app.command()
@@ -147,7 +149,7 @@ def ic3(fname: cli.Path,
         bound: cli.Bound = 0,
         ltl: cli.Ltl = None,
         timeout: cli.Timeout = 0,
-        format: cli.Format = cli.OutputFormat.PLAIN):
+        fmt: cli.Format = cli.OutputFormat.PLAIN):
     """Verify LTL properties using IC3.
 
     This is a wrapper around `check_ltlspec_ic3`.\n\n
@@ -160,7 +162,9 @@ def ic3(fname: cli.Path,
     """
     nuxmv = NuXmvInt()
     nuxmv.msat_setup(fname)
-    bound, ltl, timeout = bound or None, ltl or [None], timeout or None
-    return (
-        '\n'.join(nuxmv.ic3(bound, p, timeout) for p in ltl),
-        format)
+    b, to = bound or None, timeout or None
+    result = (
+        '\n'.join(nuxmv.ic3_invar(b, p, to) for p in ltl)
+        if ltl is not None
+        else nuxmv.ic3_invar(b, None, to))
+    return result, fmt

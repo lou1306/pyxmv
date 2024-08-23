@@ -22,7 +22,7 @@ def fifo_cache(maxsize: int | None | Callable = 128):
         return fifo_cache(128)(maxsize)
     else:
         raise TypeError('Expected first argument to be an integer or None')
-    cache = {}
+    cache: dict = {}
 
     def pseudo_fifo_cache_inner(func):
         @wraps(func)

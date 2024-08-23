@@ -32,9 +32,6 @@ class RandomChoice(SimulationHeuristic):
 
 
 class UserChoice(SimulationHeuristic):
-    def __init__(self) -> None:
-        self.states = []
-
     def choose_from(self, states: Sequence) -> int:
         for state in states:
             print(state, file=sys.stderr)

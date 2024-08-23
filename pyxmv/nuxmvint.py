@@ -4,7 +4,7 @@ from pathlib import Path
 from shutil import which
 import re
 
-import pexpect
+import pexpect  # type: ignore
 
 from .simulation_heuristics import UserChoice
 
@@ -79,7 +79,7 @@ class NuXmvInt:
         return self.nuxmv.before
 
     @staticmethod
-    def nuxmv_cmd(func: Callable[..., tuple[str, int | None]]) -> str:
+    def nuxmv_cmd(func: Callable[..., tuple[str, int | None]]):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             cmd, timeout = func(self, *args, **kwargs)

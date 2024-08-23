@@ -54,17 +54,16 @@ class Trace:
         return state, loop_starts_next
 
     @staticmethod
-    def parse_list_of_str(states: Sequence[str]) -> tuple[StrState, Sequence[int]]:  # noqa: E501
+    def parse_list_of_str(states: Sequence[str]) -> tuple[Sequence[StrState], Collection[int]]:  # noqa: E501
         """Parse a sequence of strings into states and loop indices."""
-        states, loop_starts = zip(*(Trace.parse_state(s) for s in states))
-        loop_starts = frozenset([i+1 for i, x in enumerate(loop_starts) if x])
-        return states, loop_starts
+        str_states, loop_starts = zip(*(Trace.parse_state(s) for s in states))
+        return str_states, frozenset([i+1 for i, x in enumerate(loop_starts) if x])  # noqa: E501
 
     @staticmethod
     def of_states(states: Sequence[str], type_: str, descr: str) -> "Trace":
         """Turn a sequence of strings into a Trace."""
-        states, loop_starts = Trace.parse_list_of_str(states)
-        return Trace(descr, type_, states, loop_starts)
+        str_states, loop_starts = Trace.parse_list_of_str(states)
+        return Trace(descr, type_, str_states, loop_starts)
 
     @staticmethod
     def parse(text: str) -> "Trace":
@@ -86,7 +85,7 @@ class Trace:
                 return bool(value == "TRUE")
             try:
                 parsed = float(value)
-                return int(parsed) if parsed.is_integer else parsed
+                return int(parsed) if parsed.is_integer() else parsed
             except ValueError:
                 return value
 
@@ -102,7 +101,7 @@ class Trace:
             yield from self.states
 
     def full_states(self) -> Iterable[StrState]:
-        accum = {}
+        accum: StrState = {}
         for state in self.states:
             accum |= state
             yield accum
@@ -166,7 +165,8 @@ class Outcome:
             f"VERIFICATION {self.verdict.value} "
             f"for {self.specification} "
             f"({self.logic})")
-        yield from self.trace.pprint()
+        if self.trace is not None:
+            yield from self.trace.pprint()
 
     def as_dict(self, *, full: bool = False, parse: bool = False) -> dict:
         def factory(kv_pairs):

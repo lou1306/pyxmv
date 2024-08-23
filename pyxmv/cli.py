@@ -26,7 +26,7 @@ Heuristics = Annotated[
     typer.Option(help="How successor states are chosen.")]
 
 Seed = Annotated[
-    int,
+    int | None,
     typer.Option(
         help="Seed for the PRNG (if not set, system time will be used).",
         min=0)]
