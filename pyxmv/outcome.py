@@ -1,5 +1,5 @@
 from collections.abc import Collection, Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from itertools import pairwise
 from typing import Iterable
@@ -107,6 +107,13 @@ class Trace:
             accum |= state
             yield accum
 
+    def as_dict(self, *, full: bool = False, parse: bool = False) -> dict:
+        def factory(kv_pairs):
+            result = {k: v for k, v in kv_pairs if k != "states"}
+            result["states"] = list(self.get_states(full, parse))
+            return result
+        return asdict(self, dict_factory=factory)
+
     def pprint(self, *, full: bool = False) -> Iterable[str]:
         yield f"""Trace Description: {self.trace_description or "N/A"}"""
         yield f"""Trace Type: {self.trace_type or "N/A"}"""
@@ -159,3 +166,9 @@ class Outcome:
             f"VERIFICATION {self.verdict.value} "
             f"for {self.specification} "
             f"({self.logic})")
+    def as_dict(self, *, full: bool = False, parse: bool = False) -> dict:
+        def factory(kv_pairs):
+            result = {k: v for k, v in kv_pairs if k != "trace"}
+            result["trace"] = self.trace.as_dict(full=full, parse=parse)
+            return result
+        return asdict(self, dict_factory=factory)
