@@ -19,6 +19,8 @@ StrState = dict[str, str]
 ParsedState = dict[str, Value]
 State = ParsedState | StrState
 
+LOOP_STARTS_HERE = "-- Loop starts here"
+
 
 @dataclass
 class Trace:
@@ -47,7 +49,7 @@ class Trace:
         loop_starts_next = False
         for line in lines:
             line = line.strip()
-            loop_starts_next |= line.startswith("-- Loop starts here")
+            loop_starts_next |= line.startswith(LOOP_STARTS_HERE)
             if line and not line.startswith("--"):
                 lhs, rhs = line.split("=")
                 state[lhs.strip()] = rhs.strip()
@@ -71,8 +73,11 @@ class Trace:
         start = text.find("\nTrace Description:")
         body = text[start+1:]
         descr_type, *states = body.split("->")
+        loop_starts_at_0 = LOOP_STARTS_HERE in descr_type
         states = [s.split("<-")[1] for s in states]
         str_states, loop_starts = Trace.parse_list_of_str(states)
+        if loop_starts_at_0:
+            loop_starts = frozenset({0, *loop_starts})
         descr, trace_type = descr_type.splitlines()[:2]
         descr = descr.split("Trace Description:")[1].strip()
         trace_type = trace_type.split("Type:")[1].strip()
@@ -118,8 +123,8 @@ class Trace:
         yield f"""Trace Type: {self.trace_type or "N/A"}"""
         if self.states:
             for i, state in enumerate(self.get_states(full, False)):
-                if i+1 in self.loop_indexes:
-                    yield "  -- Loop starts here:"
+                if i in self.loop_indexes:
+                    yield "  " + LOOP_STARTS_HERE
                 yield f"  -> State: 1.{i+1} <-"
                 for k, v in state.items():
                     yield f"    {k} = {v}"
