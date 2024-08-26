@@ -106,10 +106,10 @@ def handle_outcomes(func: Callable[..., tuple[str, cli.OutputFormat]]):
         fail = False
         inconc = False
         for outcome in Outcome.parse(cex):
+            dump(outcome, fmt)
             inconc |= outcome.verdict == Verdict.UNKNOWN
             if outcome.verdict == Verdict.FALSE:
                 fail = True
-                dump(outcome, fmt)
         if fail:
             cli.ExitCode.VERIFICATION_FAILED.exit()
         elif inconc:
