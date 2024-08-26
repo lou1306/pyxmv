@@ -22,11 +22,17 @@ class PyXmvError(Exception):
 
     @classmethod
     def factory(cls, msg):
+        if "The boolean model must be built before." in msg:
+            raise NoBooleanModel(msg.strip())
         err_lines = [
             line for line in msg.splitlines()
             if any(err in line for err in cls.errs)]
         if err_lines:
             raise PyXmvError("\n".join(err_lines))
+
+
+class NoBooleanModel(PyXmvError):
+    pass
 
 
 class PyXmvTimeout(PyXmvError):
@@ -83,8 +89,13 @@ class NuXmvInt:
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             cmd, timeout = func(self, *args, **kwargs)
-            self.send_and_expect(cmd)
-            return self.get_output(timeout)
+            try:
+                self.send_and_expect(cmd)
+                return self.get_output(timeout)
+            except NoBooleanModel:
+                self.send_and_expect("build_boolean_model")
+                self.send_and_expect(cmd)
+                return self.get_output(timeout)
         return wrapper
 
     def msat_setup(self, fname: Path, shown_states: int = 65535) -> None:
