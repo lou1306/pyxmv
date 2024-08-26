@@ -8,7 +8,7 @@ from click import ClickException
 from .simulation_heuristics import HeuristicsEnum
 
 
-class OutputFormat(Enum):
+class OutputFormat(str, Enum):
     JSON = "json"
     PLAIN = "text"
 
