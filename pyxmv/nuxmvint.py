@@ -94,6 +94,7 @@ class NuXmvInt:
                 return self.get_output(timeout)
             except NoBooleanModel:
                 self.send_and_expect("build_boolean_model")
+                self.expect_prompt()
                 self.send_and_expect(cmd)
                 return self.get_output(timeout)
         return wrapper
