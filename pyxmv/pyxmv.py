@@ -164,7 +164,7 @@ def ic3(fname: cli.Path,
     nuxmv.msat_setup(fname)
     b, to = bound or None, timeout or None
     result = (
-        '\n'.join(nuxmv.ic3_invar(b, p, to) for p in ltl)
+        '\n'.join(nuxmv.ic3(b, p, to) for p in ltl)
         if ltl is not None
-        else nuxmv.ic3_invar(b, None, to))
+        else nuxmv.ic3(b, None, to))
     return result, fmt
