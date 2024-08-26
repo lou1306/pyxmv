@@ -13,12 +13,13 @@ re_state = re.compile(r"[0-9]+\) -------------------------")
 
 class PyXmvError(Exception):
     errs = (
-        "No trace: constraint and initial state are inconsistent",
         "illegal operand types",
-        "Type System Violation detected",
         "Nested next operator",
+        "No trace: constraint and initial state are inconsistent",
+        "not well typed"
         "TYPE ERROR",
-        "not well typed")
+        "Type System Violation detected",
+        "unexpected expression encountered during parsing")
 
     @classmethod
     def factory(cls, msg):
