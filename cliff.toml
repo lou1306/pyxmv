@@ -24,7 +24,7 @@ body = """
     {% for commit in commits %}
         - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
             {% if commit.breaking %}[**breaking**] {% endif %}\
-            {{ commit.message | upper_first }}\
+            {{ commit.message | split(pat="\n") | first | upper_first }}\
     {% endfor %}
 {% endfor %}\n
 """
@@ -56,8 +56,9 @@ commit_preprocessors = [
 ]
 # regex for parsing and grouping commits
 commit_parsers = [
+
   { message = "^feat", group = "<!-- 0 -->🚀 Features" },
-  { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
+  { message = "^[Ff]ix", group = "<!-- 1 -->🐛 Bug Fixes" },
   { message = "^doc", group = "<!-- 3 -->📚 Documentation" },
   { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
   { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
@@ -70,6 +71,13 @@ commit_parsers = [
   { message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
   { body = ".*security", group = "<!-- 8 -->🛡️ Security" },
   { message = "^revert", group = "<!-- 9 -->◀️ Revert" },
+
+  { sha = "6236088345e67fa9bff9f35ee2a2633363d95caf", group = "<!-- 1 -->🐛 Bug Fixes", scope="NuXmvInt" },
+  { sha = "e184c0f26121e894a1ee025220675075c6d118b7", group = "<!-- 1 -->🐛 Bug Fixes", scope="NuXmvInt" },
+  { sha = "cefeab9d82ce6bef2d3dae4f22f62f716d10e908", group = "<!-- 4 -->⚡ Performance" },
+  { sha = "69eb3324ab0536f585d8e21118a29418a22fb158", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+  { sha = "c79ead1da63c2e8998b447616e0d8871930b5243", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+
 ]
 # protect breaking changes from being skipped due to matching a skipping commit_parser
 protect_breaking_commits = false
@@ -78,7 +86,7 @@ filter_commits = false
 # regex for matching git tags
 # tag_pattern = "v[0-9].*"
 # regex for skipping tags
-# skip_tags = ""
+skip_tags = "0.1.0"
 # regex for ignoring tags
 # ignore_tags = ""
 # sort the tags topologically
