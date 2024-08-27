@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.3.1] - 2024-08-27
 
 ### 🐛 Bug Fixes
 
@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 - Always output verification results
 - Fix detection/handling of loop starts
 - Catch "unexpected expression" error
+
+### 📚 Documentation
+
+- Add CHANGELOG
 
 ## [0.3.0] - 2024-08-23
 
