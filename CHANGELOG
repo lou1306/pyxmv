@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 🚀 Features
+
+- BDD-based LTL model checking API
+
+### 🚜 Refactor
+
+- Changes to NuXmvInt API
+
+### 📚 Documentation
+
+- Add/improve type annotations, docstrings
+
+### ⚙️ Miscellaneous Tasks
+
+- Improve interaction with nuXmv prompt
+
 ## [0.3.1] - 2024-08-27
 
 ### 🐛 Bug Fixes
