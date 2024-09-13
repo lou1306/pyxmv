@@ -1,6 +1,5 @@
 from collections.abc import Callable, Sequence
 from functools import wraps
-from pathlib import Path
 from shutil import which
 import re
 

@@ -5,6 +5,7 @@ from functools import _make_key, lru_cache, wraps
 sentinel = object()
 PathLike = str | os.PathLike
 
+
 def fifo_cache(maxsize: int | None | Callable = 128):
     """Cache that evicts the "earliest" entry.
 
