@@ -71,9 +71,18 @@ class PyXmv:
         if self.nuxmv is not None:
             self.nuxmv.kill(9)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.__del__()
+
     def send_and_expect(self, cmd: str) -> None:
         cmd = cmd.strip()
-        self.nuxmv.sendline(cmd)
+        try:
+            self.nuxmv.sendline(cmd)
+        except IOError:
+            raise PyXmvError("The nuxmv instance has been terminated.")
         self.nuxmv.expect_exact(cmd)
 
     def expect_prompt(self, timeout: int | None = None) -> int:
