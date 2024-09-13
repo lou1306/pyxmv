@@ -116,6 +116,25 @@ class NuXmvInt:
         """Send a raw command to NuXmv."""
         return cmd, timeout
     def msat_setup(self, fname: Path | str, shown_states: int = 65535) -> None:
+
+    def update_env(self, name: str, value: str | None) -> None:
+        """Update an environment variable."""
+        self.raw(f"unset {name}" if value is None else f'set {name} "{value}"')
+        self.env[name] = value
+
+    def get_env(self) -> dict[str, str]:
+        out = self.raw("set")
+        result = {}
+        for line in out.splitlines():
+            line = line.strip()
+            if line:
+                name, value = line.split(maxsplit=2)
+                if value == "NULL":
+                    value = None
+                elif value.startswith('"'):
+                    value = value[1:-1]
+                result[name] = value
+        return result
         """Set up nuXmv for symbolic procedures."""
         cmds = (
             "reset",
