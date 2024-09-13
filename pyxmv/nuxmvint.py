@@ -25,6 +25,8 @@ class PyXmvError(Exception):
     def factory(cls, msg):
         if "The boolean model must be built before." in msg:
             raise NoBooleanModel(msg.strip())
+        if "You must set the input file before." in msg:
+            raise NoInputFile(msg.strip())
         err_lines = [
             line for line in msg.splitlines()
             if any(err in line for err in cls.errs)]
@@ -33,6 +35,9 @@ class PyXmvError(Exception):
 
 
 class NoBooleanModel(PyXmvError):
+    pass
+
+class NoInputFile(PyXmvError):
     pass
 
 
@@ -58,6 +63,7 @@ class NuXmvInt:
             self.nuxmv.kill(9)
 
     def send_and_expect(self, cmd: str) -> None:
+        cmd = cmd.strip()
         self.nuxmv.sendline(cmd)
         self.nuxmv.expect_exact(cmd)
 
@@ -147,7 +153,7 @@ class NuXmvInt:
         return "reset", None
 
     def get_successor_states(self, c: str = "TRUE") -> list[str]:
-        self.nuxmv.sendline(f"msat_simulate -i -a -k 1 -c {c}")
+        self.send_and_expect(f"msat_simulate -i -a -k 1 -c {c}")
         self.nuxmv.expect([
             r"Choose a state from the above \(0-[0-9]+\): ",
             "There's only one available state. Press Return to Proceed."])
