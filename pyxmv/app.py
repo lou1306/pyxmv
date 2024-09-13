@@ -157,7 +157,7 @@ def ic3(fname: cli.Path,
     property if it allows a finitely-representable (e.g., lasso-shaped) path as
     a counterexample. If that is not the case, it will **NOT** terminate!\n\n
 
-    For safety properties, a workaround is to use `poetry ic3-invar` instead.
+    For safety properties, a workaround is to use `pyxmv ic3-invar` instead.
     """
     nuxmv = NuXmvInt(fname)
     b, to = bound or None, timeout or None
@@ -165,4 +165,24 @@ def ic3(fname: cli.Path,
         '\n'.join(nuxmv.check_ltlspec_ic3(b, p, to) for p in ltl)
         if ltl is not None
         else nuxmv.check_ltlspec_ic3(b, None, to))
+    return result, fmt
+
+
+@app.command()
+@handle_exceptions
+@handle_outcomes
+def bdd(fname: cli.Path,
+        ltl: cli.Ltl = None,
+        timeout: cli.Timeout = 0,
+        fmt: cli.Format = cli.OutputFormat.PLAIN):
+    """Verify LTL properties using BDD-based symbolic model checking.
+
+    This is a wrapper around `check_ltlspec`.
+    """
+    nuxmv = NuXmvInt(fname)
+    to = timeout or None
+    result = (
+        '\n'.join(nuxmv.check_ltlspec(p, to) for p in ltl)
+        if ltl is not None
+        else nuxmv.check_ltlspec(None, to))
     return result, fmt
