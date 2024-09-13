@@ -9,7 +9,7 @@ import msgspec
 import typer
 
 from . import cli
-from .nuxmvint import NuXmvInt, PyXmvError, PyXmvTimeout
+from .pyxmv import PyXmv, PyXmvError, PyXmvTimeout
 from .outcome import Outcome, Trace, Verdict
 
 app = typer.Typer(
@@ -67,7 +67,7 @@ def simulate(fname: cli.Path,
              format: cli.Format = cli.OutputFormat.PLAIN):
     """Simulate a nuxmv model."""
     heur = heuristics.get(seed)
-    nuxmv = NuXmvInt(fname)
+    nuxmv = PyXmv(fname)
     nuxmv.update_env("shown_states", 65535)
     states: list[str] = []
     signal.signal(signal.SIGTERM, dump_states(states, format, cli.ExitCode.TIMEOUT))  # noqa: E501
@@ -132,7 +132,7 @@ def ic3_invar(fname: cli.Path,
 
     It only works for invariant properties, i.e., `G (predicate)`.
     """
-    nuxmv = NuXmvInt(fname)
+    nuxmv = PyXmv(fname)
     b, to = bound or None, timeout or None
     result = (
         '\n'.join(nuxmv.check_property_as_invar_ic3(b, p, to) for p in ltl)
@@ -159,7 +159,7 @@ def ic3(fname: cli.Path,
 
     For safety properties, a workaround is to use `pyxmv ic3-invar` instead.
     """
-    nuxmv = NuXmvInt(fname)
+    nuxmv = PyXmv(fname)
     b, to = bound or None, timeout or None
     result = (
         '\n'.join(nuxmv.check_ltlspec_ic3(b, p, to) for p in ltl)
@@ -179,7 +179,7 @@ def bdd(fname: cli.Path,
 
     This is a wrapper around `check_ltlspec`.
     """
-    nuxmv = NuXmvInt(fname)
+    nuxmv = PyXmv(fname)
     to = timeout or None
     result = (
         '\n'.join(nuxmv.check_ltlspec(p, to) for p in ltl)

@@ -48,7 +48,7 @@ class PyXmvTimeout(PyXmvError):
     pass
 
 
-class NuXmvInt:
+class PyXmv:
     PROMPT = "nuXmv > "
     STATE_SEP = "================= State ================="
     AVAIL_STATES = "***************  AVAILABLE STATES  *************"
@@ -79,8 +79,8 @@ class NuXmvInt:
     def expect_prompt(self, timeout: int | None = None) -> int:
         try:
             return self.nuxmv.expect_exact(
-                NuXmvInt.PROMPT, timeout=timeout,
-                searchwindowsize=2*len(NuXmvInt.PROMPT))
+                PyXmv.PROMPT, timeout=timeout,
+                searchwindowsize=2*len(PyXmv.PROMPT))
         except pexpect.TIMEOUT:
             self.nuxmv.sendcontrol("c")
             raise PyXmvTimeout()
@@ -162,7 +162,7 @@ class NuXmvInt:
         output = self.get_output(timeout=timeout, prompts=[
             r"Choose a state from the above \(0-[0-9]+\): ",
             "There's only one available state. Press Return to Proceed."])
-        states = output.split(NuXmvInt.STATE_SEP)[1:]
+        states = output.split(PyXmv.STATE_SEP)[1:]
         choice = h.choose_from(states)
         chosen = re.sub(re_state, "", states[choice], 1).strip()
         self.raw(str(choice), timeout)
@@ -204,7 +204,7 @@ class NuXmvInt:
         self.nuxmv.expect([
             r"Choose a state from the above \(0-[0-9]+\): ",
             "There's only one available state. Press Return to Proceed."])
-        return self.nuxmv.before.split(NuXmvInt.STATE_SEP)[1:]
+        return self.nuxmv.before.split(PyXmv.STATE_SEP)[1:]
 
     def run_simulation(self, steps=1, c: str = "TRUE", heuristic=None) -> tuple[Sequence[str], bool]:  # noqa: E501
         h = UserChoice() if heuristic is None else heuristic
