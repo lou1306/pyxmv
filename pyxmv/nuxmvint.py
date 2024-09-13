@@ -53,13 +53,19 @@ class NuXmvInt:
     STATE_SEP = "================= State ================="
     AVAIL_STATES = "***************  AVAILABLE STATES  *************"
 
-    def __init__(self):
+    def __init__(self, fname: Path | str | None = None):
         self.nuxmv = None
+        self.go_called = False
+        self.go_msat_called = False
         if which("nuxmv") is None:
             raise FileNotFoundError("nuxmv not in PATH")
         self.nuxmv = pexpect.spawn("nuxmv", ["-int"], encoding="utf-8")
         self.nuxmv.setecho(False)
         self.expect_prompt()
+        self.default_env = self.get_env()
+        self.env = {**self.default_env}
+        if fname:
+            self.update_env("input_file", fname)
 
     def __del__(self):
         if self.nuxmv is not None:
@@ -95,27 +101,32 @@ class NuXmvInt:
         return self.nuxmv.before
 
     @staticmethod
-    def nuxmv_cmd(func: Callable[..., tuple[str, int | None]]):
-        """Decorator that invokes a nuXmv command provided by the decorated
-        function."""
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            cmd, timeout = func(self, *args, **kwargs)
-            try:
-                self.send_and_expect(cmd)
-                return self.get_output(timeout)
-            except NoBooleanModel:
-                self.send_and_expect("build_boolean_model")
-                self.expect_prompt()
-                self.send_and_expect(cmd)
-                return self.get_output(timeout)
-        return wrapper
+    def nuxmv_cmd(*, bdd: bool = False, msat: bool = False):
+        def nuxmv_cmd_inner(func: Callable[..., tuple[str, int | None]]):
+            """Decorator that invokes a nuXmv command provided by the decorated
+            function."""
+            @wraps(func)
+            def wrapper(self, *args, **kwargs):
+                if bdd and not self.go_called:
+                    self.go()
+                elif msat and not self.go_msat_called:
+                    self.go_msat()
+                cmd, timeout = func(self, *args, **kwargs)
+                try:
+                    self.send_and_expect(cmd)
+                    return self.get_output(timeout)
+                except NoBooleanModel:
+                    self.send_and_expect("build_boolean_model")
+                    self.expect_prompt()
+                    self.send_and_expect(cmd)
+                    return self.get_output(timeout)
+            return wrapper
+        return nuxmv_cmd_inner
 
-    @nuxmv_cmd
+    @nuxmv_cmd()
     def raw(self, cmd: str, timeout: int | None = None):
         """Send a raw command to NuXmv."""
         return cmd, timeout
-    def msat_setup(self, fname: Path | str, shown_states: int = 65535) -> None:
 
     def update_env(self, name: str, value: str | None) -> None:
         """Update an environment variable."""
@@ -135,28 +146,16 @@ class NuXmvInt:
                     value = value[1:-1]
                 result[name] = value
         return result
-        """Set up nuXmv for symbolic procedures."""
-        cmds = (
-            "reset",
-            f"set shown_states {shown_states}",
-            f"set input_file {fname}",
-            "go_msat")
-        for cmd in cmds:
-            self.nuxmv.sendline(cmd)
-            self.expect_prompt()
-            PyXmvError.factory(self.nuxmv.before)
 
-    def bdd_setup(self, fname: Path | str, shown_states: int = 65535) -> None:
-        """Sets up NuXmv for BDD-based procedures."""
-        cmds = (
-            "reset",
-            f"set shown_states {shown_states}",
-            f"set input_file {fname}",
-            "go")
-        for cmd in cmds:
-            self.nuxmv.sendline(cmd)
-            self.expect_prompt()
-            PyXmvError.factory(self.nuxmv.before)
+    def go_msat(self):
+        """Set up nuXmv for symbolic procedures."""
+        self.raw("go_msat")
+        self.go_msat_called = True
+
+    def go(self):
+        """Set up NuXmv for BDD-based procedures."""
+        self.raw("go")
+        self.go_called = True
 
     def init_simulation(self, h: SimulationHeuristic, c: str | None = "TRUE", timeout: int | None = None) -> str:  # noqa: E501
         self.send_and_expect(f"""msat_pick_state -c "{c}" -v -i""")
@@ -169,30 +168,35 @@ class NuXmvInt:
         self.raw(str(choice), timeout)
         return chosen
 
-    @nuxmv_cmd
+    @nuxmv_cmd(bdd=True)
     def check_ltlspec(self, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
         fmt_ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
-        return (f"check_ltlspec {fmt_ltlspec}"), timeout
+        return f"check_ltlspec {fmt_ltlspec}", timeout
 
-    @nuxmv_cmd
+    @nuxmv_cmd(msat=True)
     def check_ltlspec_ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
         fmt_bound = f"-k {bound}" if bound else ""
         fmt_ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
-        return (f"check_ltlspec_ic3 {fmt_bound} {fmt_ltlspec}"), timeout
+        return f"check_ltlspec_ic3 {fmt_bound} {fmt_ltlspec}", timeout
 
-    @nuxmv_cmd
+    @nuxmv_cmd(msat=True)
     def check_property_as_invar_ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
         fmt_bound = f"-k {bound}" if bound else ""
         fmt_ltlspec = f"""-L "{ltlspec}" """ if ltlspec else ""
         return f"check_property_as_invar_ic3 {fmt_bound} {fmt_ltlspec}", timeout  # noqa: E501
 
-    @nuxmv_cmd
+    @nuxmv_cmd(msat=True)
     def msat_check_ltlspec_bmc(self, bound: int, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
         ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
         return f"msat_check_ltlspec_bmc -k {bound} {ltlspec}", timeout
 
-    @nuxmv_cmd
-    def reset(self) -> tuple[str, None]:
+    @nuxmv_cmd()
+    def reset(self, reset_env: bool = False) -> tuple[str, None]:
+        self.go_called = False
+        self.go_msat_called = False
+        if reset_env:
+            for name, value in self.default_env.items():
+                self.update_env(name, value)
         return "reset", None
 
     def get_successor_states(self, c: str = "TRUE") -> list[str]:

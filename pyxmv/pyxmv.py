@@ -67,8 +67,8 @@ def simulate(fname: cli.Path,
              format: cli.Format = cli.OutputFormat.PLAIN):
     """Simulate a nuxmv model."""
     heur = heuristics.get(seed)
-    nuxmv = NuXmvInt()
-    nuxmv.msat_setup(fname)
+    nuxmv = NuXmvInt(fname)
+    nuxmv.update_env("shown_states", 65535)
     states: list[str] = []
     signal.signal(signal.SIGTERM, dump_states(states, format, cli.ExitCode.TIMEOUT))  # noqa: E501
     try:
@@ -132,8 +132,7 @@ def ic3_invar(fname: cli.Path,
 
     It only works for invariant properties, i.e., `G (predicate)`.
     """
-    nuxmv = NuXmvInt()
-    nuxmv.msat_setup(fname)
+    nuxmv = NuXmvInt(fname)
     b, to = bound or None, timeout or None
     result = (
         '\n'.join(nuxmv.check_property_as_invar_ic3(b, p, to) for p in ltl)
@@ -160,8 +159,7 @@ def ic3(fname: cli.Path,
 
     For safety properties, a workaround is to use `poetry ic3-invar` instead.
     """
-    nuxmv = NuXmvInt()
-    nuxmv.msat_setup(fname)
+    nuxmv = NuXmvInt(fname)
     b, to = bound or None, timeout or None
     result = (
         '\n'.join(nuxmv.check_ltlspec_ic3(b, p, to) for p in ltl)
