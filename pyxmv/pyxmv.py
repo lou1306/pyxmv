@@ -7,6 +7,7 @@ import re
 import pexpect
 
 from .simulation_heuristics import UserChoice, SimulationHeuristic
+from .utils import PathLike
 
 re_state = re.compile(r"[0-9]+\) -------------------------")
 
@@ -53,8 +54,7 @@ class PyXmv:
     STATE_SEP = "================= State ================="
     AVAIL_STATES = "***************  AVAILABLE STATES  *************"
 
-    def __init__(self, fname: Path | str | None = None):
-        self.nuxmv = None
+    def __init__(self, fname: PathLike | None = None):
         self.go_called = False
         self.go_msat_called = False
         if which("nuxmv") is None:
@@ -85,7 +85,7 @@ class PyXmv:
             self.nuxmv.sendcontrol("c")
             raise PyXmvTimeout()
 
-    def expect(self, prompts: list[str], timeout: int | None = None):
+    def expect(self, prompts: list, timeout: int | None = None):
         try:
             self.nuxmv.expect(prompts, timeout)
         except pexpect.TIMEOUT:
@@ -98,7 +98,7 @@ class PyXmv:
         else:
             self.expect(prompts, timeout)
         PyXmvError.factory(self.nuxmv.before)
-        return self.nuxmv.before
+        return self.nuxmv.before or ""
 
     @staticmethod
     def nuxmv_cmd(*, bdd: bool = False, msat: bool = False):
@@ -128,10 +128,10 @@ class PyXmv:
         """Send a raw command to NuXmv."""
         return cmd, timeout
 
-    def update_env(self, name: str, value: str | None) -> None:
+    def update_env(self, name: str, value: PathLike | int | float | None) -> None:  # noqa: E501
         """Update an environment variable."""
         self.raw(f"unset {name}" if value is None else f'set {name} "{value}"')
-        self.env[name] = value
+        self.env[name] = str(value)
 
     def get_env(self) -> dict[str, str]:
         out = self.raw("set")
@@ -204,7 +204,7 @@ class PyXmv:
         self.nuxmv.expect([
             r"Choose a state from the above \(0-[0-9]+\): ",
             "There's only one available state. Press Return to Proceed."])
-        return self.nuxmv.before.split(PyXmv.STATE_SEP)[1:]
+        return (self.nuxmv.before or "").split(PyXmv.STATE_SEP)[1:]
 
     def run_simulation(self, steps=1, c: str = "TRUE", heuristic=None) -> tuple[Sequence[str], bool]:  # noqa: E501
         h = UserChoice() if heuristic is None else heuristic
@@ -215,7 +215,7 @@ class PyXmv:
             chosen = re.sub(re_state, "", states[choice], 1).strip()
             result.append(chosen)
             self.raw(str(choice))
-            is_sat = "Simulation is SAT" in self.nuxmv.before
+            is_sat = "Simulation is SAT" in (self.nuxmv.before or "")
             if not is_sat:
                 break
         return result, is_sat
