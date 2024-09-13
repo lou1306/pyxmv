@@ -113,7 +113,6 @@ class NuXmvInt:
 
     def msat_setup(self, fname: Path | str, shown_states: int = 65535) -> None:
         """Set up nuXmv for symbolic procedures."""
-
         cmds = (
             "reset",
             f"set shown_states {shown_states}",
