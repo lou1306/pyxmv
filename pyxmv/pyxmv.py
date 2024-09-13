@@ -72,10 +72,10 @@ def simulate(fname: cli.Path,
     states: list[str] = []
     signal.signal(signal.SIGTERM, dump_states(states, format, cli.ExitCode.TIMEOUT))  # noqa: E501
     try:
-        states.append(nuxmv.init(h=heur))
+        states.append(nuxmv.init_simulation(h=heur))
         steps = steps or -1
         while steps != 0:
-            state, is_sat = nuxmv.simulate(heuristic=heur)
+            state, is_sat = nuxmv.run_simulation(heuristic=heur)
             states.extend(state)
             steps = steps - 1 if steps > 0 else -1
             if not is_sat:
@@ -136,9 +136,9 @@ def ic3_invar(fname: cli.Path,
     nuxmv.msat_setup(fname)
     b, to = bound or None, timeout or None
     result = (
-        '\n'.join(nuxmv.ic3_invar(b, p, to) for p in ltl)
+        '\n'.join(nuxmv.check_property_as_invar_ic3(b, p, to) for p in ltl)
         if ltl is not None
-        else nuxmv.ic3_invar(b, None, to))
+        else nuxmv.check_property_as_invar_ic3(b, None, to))
     return result, fmt
 
 
@@ -164,7 +164,7 @@ def ic3(fname: cli.Path,
     nuxmv.msat_setup(fname)
     b, to = bound or None, timeout or None
     result = (
-        '\n'.join(nuxmv.ic3(b, p, to) for p in ltl)
+        '\n'.join(nuxmv.check_ltlspec_ic3(b, p, to) for p in ltl)
         if ltl is not None
-        else nuxmv.ic3(b, None, to))
+        else nuxmv.check_ltlspec_ic3(b, None, to))
     return result, fmt

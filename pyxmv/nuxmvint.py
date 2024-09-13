@@ -123,7 +123,7 @@ class NuXmvInt:
             self.expect_prompt()
             PyXmvError.factory(self.nuxmv.before)
 
-    def setup(self, fname: Path | str, shown_states: int = 65535) -> None:
+    def bdd_setup(self, fname: Path | str, shown_states: int = 65535) -> None:
         """Sets up NuXmv for BDD-based procedures."""
         cmds = (
             "reset",
@@ -135,7 +135,7 @@ class NuXmvInt:
             self.expect_prompt()
             PyXmvError.factory(self.nuxmv.before)
 
-    def init(self, h: SimulationHeuristic, c: str | None = "TRUE", timeout: int | None = None) -> str:  # noqa: E501
+    def init_simulation(self, h: SimulationHeuristic, c: str | None = "TRUE", timeout: int | None = None) -> str:  # noqa: E501
         self.send_and_expect(f"""msat_pick_state -c "{c}" -v -i""")
         output = self.get_output(timeout=timeout, prompts=[
             r"Choose a state from the above \(0-[0-9]+\): ",
@@ -148,24 +148,24 @@ class NuXmvInt:
         return chosen
 
     @nuxmv_cmd
-    def check_ltl(self, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+    def check_ltlspec(self, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
         fmt_ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
         return (f"check_ltlspec {fmt_ltlspec}"), timeout
 
     @nuxmv_cmd
-    def ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+    def check_ltlspec_ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
         fmt_bound = f"-k {bound}" if bound else ""
         fmt_ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
         return (f"check_ltlspec_ic3 {fmt_bound} {fmt_ltlspec}"), timeout
 
     @nuxmv_cmd
-    def ic3_invar(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+    def check_property_as_invar_ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
         fmt_bound = f"-k {bound}" if bound else ""
         fmt_ltlspec = f"""-L "{ltlspec}" """ if ltlspec else ""
         return f"check_property_as_invar_ic3 {fmt_bound} {fmt_ltlspec}", timeout  # noqa: E501
 
     @nuxmv_cmd
-    def bmc(self, bound: int, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+    def msat_check_ltlspec_bmc(self, bound: int, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
         ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
         return f"msat_check_ltlspec_bmc -k {bound} {ltlspec}", timeout
 
@@ -180,7 +180,7 @@ class NuXmvInt:
             "There's only one available state. Press Return to Proceed."])
         return self.nuxmv.before.split(NuXmvInt.STATE_SEP)[1:]
 
-    def simulate(self, steps=1, c: str = "TRUE", heuristic=None) -> tuple[Sequence[str], bool]:  # noqa: E501
+    def run_simulation(self, steps=1, c: str = "TRUE", heuristic=None) -> tuple[Sequence[str], bool]:  # noqa: E501
         h = UserChoice() if heuristic is None else heuristic
         result = []
         for _ in range(steps):
