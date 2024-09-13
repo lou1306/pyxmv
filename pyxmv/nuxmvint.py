@@ -6,7 +6,7 @@ import re
 
 import pexpect
 
-from .simulation_heuristics import UserChoice
+from .simulation_heuristics import UserChoice, SimulationHeuristic
 
 re_state = re.compile(r"[0-9]+\) -------------------------")
 
@@ -36,6 +36,7 @@ class PyXmvError(Exception):
 
 class NoBooleanModel(PyXmvError):
     pass
+
 
 class NoInputFile(PyXmvError):
     pass
@@ -93,6 +94,8 @@ class NuXmvInt:
 
     @staticmethod
     def nuxmv_cmd(func: Callable[..., tuple[str, int | None]]):
+        """Decorator that invokes a nuXmv command provided by the decorated
+        function."""
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             cmd, timeout = func(self, *args, **kwargs)
@@ -106,7 +109,7 @@ class NuXmvInt:
                 return self.get_output(timeout)
         return wrapper
 
-    def msat_setup(self, fname: Path, shown_states: int = 65535) -> None:
+    def msat_setup(self, fname: Path | str, shown_states: int = 65535) -> None:
         """Set up nuXmv for symbolic procedures."""
 
         cmds = (
@@ -120,6 +123,7 @@ class NuXmvInt:
             PyXmvError.factory(self.nuxmv.before)
 
     def setup(self, fname: Path | str, shown_states: int = 65535) -> None:
+        """Sets up NuXmv for BDD-based procedures."""
         cmds = (
             "reset",
             f"set shown_states {shown_states}",
@@ -130,7 +134,7 @@ class NuXmvInt:
             self.expect_prompt()
             PyXmvError.factory(self.nuxmv.before)
 
-    def init(self, h, c: str | None = "TRUE", timeout: int | None = None) -> str:  # noqa: E501
+    def init(self, h: SimulationHeuristic, c: str | None = "TRUE", timeout: int | None = None) -> str:  # noqa: E501
         self.send_and_expect(f"""msat_pick_state -c "{c}" -v -i""")
         output = self.get_output(timeout=timeout, prompts=[
             r"Choose a state from the above \(0-[0-9]+\): ",
