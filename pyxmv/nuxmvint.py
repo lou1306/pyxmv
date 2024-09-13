@@ -111,6 +111,10 @@ class NuXmvInt:
                 return self.get_output(timeout)
         return wrapper
 
+    @nuxmv_cmd
+    def raw(self, cmd: str, timeout: int | None = None):
+        """Send a raw command to NuXmv."""
+        return cmd, timeout
     def msat_setup(self, fname: Path | str, shown_states: int = 65535) -> None:
         """Set up nuXmv for symbolic procedures."""
         cmds = (
@@ -143,8 +147,7 @@ class NuXmvInt:
         states = output.split(NuXmvInt.STATE_SEP)[1:]
         choice = h.choose_from(states)
         chosen = re.sub(re_state, "", states[choice], 1).strip()
-        self.send_and_expect(str(choice))
-        self.get_output(timeout)
+        self.raw(str(choice), timeout)
         return chosen
 
     @nuxmv_cmd
@@ -188,8 +191,7 @@ class NuXmvInt:
             choice = h.choose_from(states)
             chosen = re.sub(re_state, "", states[choice], 1).strip()
             result.append(chosen)
-            self.send_and_expect(str(choice))
-            self.expect_prompt()
+            self.raw(str(choice))
             is_sat = "Simulation is SAT" in self.nuxmv.before
             if not is_sat:
                 break
