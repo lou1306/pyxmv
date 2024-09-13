@@ -119,6 +119,17 @@ class NuXmvInt:
             self.expect_prompt()
             PyXmvError.factory(self.nuxmv.before)
 
+    def setup(self, fname: Path | str, shown_states: int = 65535) -> None:
+        cmds = (
+            "reset",
+            f"set shown_states {shown_states}",
+            f"set input_file {fname}",
+            "go")
+        for cmd in cmds:
+            self.nuxmv.sendline(cmd)
+            self.expect_prompt()
+            PyXmvError.factory(self.nuxmv.before)
+
     def init(self, h, c: str | None = "TRUE", timeout: int | None = None) -> str:  # noqa: E501
         self.send_and_expect(f"""msat_pick_state -c "{c}" -v -i""")
         output = self.get_output(timeout=timeout, prompts=[
@@ -130,6 +141,11 @@ class NuXmvInt:
         self.send_and_expect(str(choice))
         self.get_output(timeout)
         return chosen
+
+    @nuxmv_cmd
+    def check_ltl(self, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+        fmt_ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
+        return (f"check_ltlspec {fmt_ltlspec}"), timeout
 
     @nuxmv_cmd
     def ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
