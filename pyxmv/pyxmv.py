@@ -198,6 +198,26 @@ class PyXmv:
         ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
         return f"msat_check_ltlspec_bmc -k {bound} {ltlspec}", timeout
 
+    @nuxmv_cmd(msat=True)
+    def msat_pick_state(self, c: str = "TRUE", i: bool = False, timeout: int | None = None) -> tuple:  # noqa: E501
+        """Pick a feasible initial state.
+
+        **Warning**: When `i = True` the function is blocking!
+
+        Args:
+            c (str, optional): Additional constraint on the state. Defaults to "TRUE".
+            i (bool, optional): Interactive. Defaults to False.
+            timeout (int | None, optional): timeout in seconds. Defaults to None.
+        """
+        return (
+            f"""msat_pick_state -c "{c}" -v -i""",
+            timeout,
+            r"Choose a state from the above \(0-[0-9]+\): ",
+            "There's only one available state. Press Return to Proceed."
+        ) if i else (
+            f"""msat_pick_state -c "{c}" -v""",
+            timeout)
+
     @nuxmv_cmd()
     def reset(self, reset_env: bool = False) -> tuple[str, None]:
         self.go_called = False
