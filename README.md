@@ -21,7 +21,7 @@ After cloning this repository:
 cd pyxmv
 poetry update
 poetry install
-poetry run pyxmv --help
+pyxmv --help
 ```
 
 ## Install options
