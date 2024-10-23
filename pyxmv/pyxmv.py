@@ -166,10 +166,7 @@ class PyXmv:
         self.go_called = True
 
     def init_simulation(self, h: SimulationHeuristic, c: str | None = "TRUE", timeout: int | None = None) -> str:  # noqa: E501
-        self.send_and_expect(f"""msat_pick_state -c "{c}" -v -i""")
-        output = self.get_output(timeout=timeout, prompts=[
-            r"Choose a state from the above \(0-[0-9]+\): ",
-            "There's only one available state. Press Return to Proceed."])
+        output = self.msat_pick_state(c, True, timeout)
         states = output.split(PyXmv.STATE_SEP)[1:]
         choice = h.choose_from(states)
         chosen = re.sub(re_state, "", states[choice], 1).strip()
@@ -241,11 +238,9 @@ class PyXmv:
         return "reset", None
 
     def get_successor_states(self, c: str = "TRUE") -> list[str]:
-        self.send_and_expect(f"msat_simulate -i -a -k 1 -c {c}")
-        self.nuxmv.expect([
-            r"Choose a state from the above \(0-[0-9]+\): ",
-            "There's only one available state. Press Return to Proceed."])
-        return (self.nuxmv.before or "").split(PyXmv.STATE_SEP)[1:]
+        """Get successors to the current state in a simulation."""
+        output = self.msat_simulate(c, i=True)
+        return (output or "").split(PyXmv.STATE_SEP)[1:]
 
     def run_simulation(self, steps=1, c: str = "TRUE", heuristic=None) -> tuple[Sequence[str], bool]:  # noqa: E501
         h = UserChoice() if heuristic is None else heuristic
