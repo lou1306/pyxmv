@@ -146,6 +146,7 @@ class PyXmv:
         self.env[name] = str(value)
 
     def get_env(self) -> dict[str, str]:
+        """Return the current nuXmv environment."""
         out = self.raw("set")
         result = {}
         for line in out.splitlines():
@@ -224,7 +225,22 @@ class PyXmv:
             timeout)
 
     @nuxmv_cmd(msat=True)
-    def msat_simulate(self, c: str = "TRUE", i: bool = False, k: int = 1, timeout: int | None = None) -> tuple:
+    def msat_simulate(self, c: str = "TRUE", i: bool = False, k: int = 1, timeout: int | None = None) -> tuple:  # noqa: E501
+        """Extend a (SMT-based) simulation.
+
+        **Warnings**
+            `msat_pick_state` has to be called before the 1st call to `msat_simulate`.
+            When `i = True` the function is blocking, and only supports `k=1`.
+
+        Args:
+            c (str, optional): Additional constraint on the state. Defaults to "TRUE".
+            i (bool, optional): Interactive. Defaults to False.
+            k (int, optional): How many steps to simulate. Defaults to 1.
+            timeout (int | None, optional): timeout in seconds. Defaults to None.
+
+        Raises:
+            PyXmvError: Raised when k>1 in interactive mode.
+        """
         if k > 1 and i:
             raise PyXmvError("msat_simulate -i does not support k > 1.")
         return (
