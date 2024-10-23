@@ -119,10 +119,10 @@ class PyXmv:
                     self.go()
                 elif msat and not self.go_msat_called:
                     self.go_msat()
-                cmd, timeout = func(self, *args, **kwargs)
+                cmd, timeout, *prompts = func(self, *args, **kwargs)
                 try:
                     self.send_and_expect(cmd)
-                    return self.get_output(timeout)
+                    return self.get_output(timeout, prompts or None)
                 except NoBooleanModel:
                     self.send_and_expect("build_boolean_model")
                     self.expect_prompt()
@@ -132,9 +132,9 @@ class PyXmv:
         return nuxmv_cmd_inner
 
     @nuxmv_cmd()
-    def raw(self, cmd: str, timeout: int | None = None):
+    def raw(self, cmd: str, timeout: int | None = None, prompts: list[str] | None = None):  # noqa: E501
         """Send a raw command to NuXmv."""
-        return cmd, timeout
+        return (cmd, timeout, *prompts) if prompts else cmd, timeout
 
     def update_env(self, name: str, value: PathLike | int | float | None) -> None:  # noqa: E501
         """Update an environment variable."""
