@@ -218,6 +218,19 @@ class PyXmv:
             f"""msat_pick_state -c "{c}" -v""",
             timeout)
 
+    @nuxmv_cmd(msat=True)
+    def msat_simulate(self, c: str = "TRUE", i: bool = False, k: int = 1, timeout: int | None = None) -> tuple:
+        if k > 1 and i:
+            raise PyXmvError("msat_simulate -i does not support k > 1.")
+        return (
+            f"""msat_simulate -i -c "{c}" -a -k {k}""",
+            timeout,
+            r"Choose a state from the above \(0-[0-9]+\): ",
+            "There's only one available state. Press Return to Proceed."
+        ) if i else (
+            f"""msat_simulate -c "{c}" -a -k {k}""",
+            timeout)
+
     @nuxmv_cmd()
     def reset(self, reset_env: bool = False) -> tuple[str, None]:
         self.go_called = False
