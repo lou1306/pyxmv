@@ -67,21 +67,21 @@ def simulate(fname: cli.Path,
              format: cli.Format = cli.OutputFormat.PLAIN):
     """Simulate a nuxmv model."""
     heur = heuristics.get(seed)
-    nuxmv = PyXmv(fname)
-    nuxmv.update_env("shown_states", 65535)
-    states: list[str] = []
-    signal.signal(signal.SIGTERM, dump_states(states, format, cli.ExitCode.TIMEOUT))  # noqa: E501
-    try:
-        states.append(nuxmv.init_simulation(h=heur))
-        steps = steps or -1
-        while steps != 0:
-            state, is_sat = nuxmv.run_simulation(heuristic=heur)
-            states.extend(state)
-            steps = steps - 1 if steps > 0 else -1
-            if not is_sat:
-                break
-    except KeyboardInterrupt:
-        pass
+    with PyXmv(fname) as nuxmv:
+        nuxmv.update_env("shown_states", 65535)
+        states: list[str] = []
+        signal.signal(signal.SIGTERM, dump_states(states, format, cli.ExitCode.TIMEOUT))  # noqa: E501
+        try:
+            states.append(nuxmv.init_simulation(h=heur))
+            steps = steps or -1
+            while steps != 0:
+                state, is_sat = nuxmv.run_simulation(heuristic=heur)
+                states.extend(state)
+                steps = steps - 1 if steps > 0 else -1
+                if not is_sat:
+                    break
+        except KeyboardInterrupt:
+            pass
     dump_states(states, format, cli.ExitCode.SUCCESS)(None, None)
 
 
@@ -132,12 +132,12 @@ def ic3_invar(fname: cli.Path,
 
     It only works for invariant properties, i.e., `G (predicate)`.
     """
-    nuxmv = PyXmv(fname)
     b, to = bound or None, timeout or None
-    result = (
-        '\n'.join(nuxmv.check_property_as_invar_ic3(b, p, to) for p in ltl)
-        if ltl is not None
-        else nuxmv.check_property_as_invar_ic3(b, None, to))
+    with PyXmv(fname) as nuxmv:
+        result = (
+            '\n'.join(nuxmv.check_property_as_invar_ic3(b, p, to) for p in ltl)
+            if ltl is not None
+            else nuxmv.check_property_as_invar_ic3(b, None, to))
     return result, fmt
 
 
@@ -159,12 +159,12 @@ def ic3(fname: cli.Path,
 
     For safety properties, a workaround is to use `pyxmv ic3-invar` instead.
     """
-    nuxmv = PyXmv(fname)
     b, to = bound or None, timeout or None
-    result = (
-        '\n'.join(nuxmv.check_ltlspec_ic3(b, p, to) for p in ltl)
-        if ltl is not None
-        else nuxmv.check_ltlspec_ic3(b, None, to))
+    with PyXmv(fname) as nuxmv:
+        result = (
+            '\n'.join(nuxmv.check_ltlspec_ic3(b, p, to) for p in ltl)
+            if ltl is not None
+            else nuxmv.check_ltlspec_ic3(b, None, to))
     return result, fmt
 
 
@@ -179,10 +179,10 @@ def bdd(fname: cli.Path,
 
     This is a wrapper around `check_ltlspec`.
     """
-    nuxmv = PyXmv(fname)
     to = timeout or None
-    result = (
-        '\n'.join(nuxmv.check_ltlspec(p, to) for p in ltl)
-        if ltl is not None
-        else nuxmv.check_ltlspec(None, to))
+    with PyXmv(fname) as nuxmv:
+        result = (
+            '\n'.join(nuxmv.check_ltlspec(p, to) for p in ltl)
+            if ltl is not None
+            else nuxmv.check_ltlspec(None, to))
     return result, fmt
