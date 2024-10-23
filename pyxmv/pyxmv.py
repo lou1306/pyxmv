@@ -175,23 +175,27 @@ class PyXmv:
 
     @nuxmv_cmd(bdd=True)
     def check_ltlspec(self, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+        """Perform BDD-based symbolic model checking."""
         fmt_ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
         return f"check_ltlspec {fmt_ltlspec}", timeout
 
     @nuxmv_cmd(msat=True)
     def check_ltlspec_ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+        """Perform symbolic model checking with IC3."""
         fmt_bound = f"-k {bound}" if bound else ""
         fmt_ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
         return f"check_ltlspec_ic3 {fmt_bound} {fmt_ltlspec}", timeout
 
     @nuxmv_cmd(msat=True)
     def check_property_as_invar_ic3(self, bound: int | None = None, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+        """Perform invariant checking with IC3."""
         fmt_bound = f"-k {bound}" if bound else ""
         fmt_ltlspec = f"""-L "{ltlspec}" """ if ltlspec else ""
         return f"check_property_as_invar_ic3 {fmt_bound} {fmt_ltlspec}", timeout  # noqa: E501
 
     @nuxmv_cmd(msat=True)
     def msat_check_ltlspec_bmc(self, bound: int, ltlspec: str | None = None, timeout: int | None = None) -> tuple[str, int | None]:  # noqa: E501
+        """Perform symbolic bounded model checking."""
         ltlspec = f"""-p "{ltlspec}" """ if ltlspec else ""
         return f"msat_check_ltlspec_bmc -k {bound} {ltlspec}", timeout
 
@@ -230,6 +234,7 @@ class PyXmv:
 
     @nuxmv_cmd()
     def reset(self, reset_env: bool = False) -> tuple[str, None]:
+        """Reset the state of nuXmv and pyXmv."""
         self.go_called = False
         self.go_msat_called = False
         if reset_env:
@@ -243,6 +248,7 @@ class PyXmv:
         return (output or "").split(PyXmv.STATE_SEP)[1:]
 
     def run_simulation(self, steps=1, c: str = "TRUE", heuristic=None) -> tuple[Sequence[str], bool]:  # noqa: E501
+        """Simulate a nuXmv system."""
         h = UserChoice() if heuristic is None else heuristic
         result = []
         for _ in range(steps):
