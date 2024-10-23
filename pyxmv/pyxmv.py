@@ -13,14 +13,18 @@ re_state = re.compile(r"[0-9]+\) -------------------------")
 
 class PyXmvError(Exception):
     errs = (
-        "A model must be read before.",
+        "A model must be read before",
+        "A starting state has to be chosen"
+        "An integer was expected",
         "illegal operand types",
         "Impossible to build a BDD FSM with infinite precision variables",
         "Nested next operator",
         "No trace: constraint and initial state are inconsistent",
         "not well typed",
+        "SMT model not built"
         "TYPE ERROR",
         "Type System Violation detected",
+        "undefined",
         "unexpected expression encountered during parsing")
 
     @classmethod

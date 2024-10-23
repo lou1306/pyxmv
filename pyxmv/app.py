@@ -28,7 +28,7 @@ def callback(debug: cli.Debug = False):
 
 
 @app.command()
-def version():
+def version() -> None:
     """ Print version information and exit."""
     try:
         print(importlib.metadata.version("pyxmv"))
