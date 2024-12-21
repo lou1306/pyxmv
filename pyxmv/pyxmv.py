@@ -16,12 +16,14 @@ class PyXmvError(Exception):
         "A model must be read before",
         "A starting state has to be chosen"
         "An integer was expected",
+        "cannot be converted into INVARSPEC",
         "illegal operand types",
+        "is not a safetyLTL property",
         "Impossible to build a BDD FSM with infinite precision variables",
-        "Nested next operator",
         "No trace: constraint and initial state are inconsistent",
+        "Nested next operator",
         "not well typed",
-        "SMT model not built"
+        "SMT model not built",
         "TYPE ERROR",
         "Type System Violation detected",
         "undefined",
