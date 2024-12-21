@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2024-12-21
+
+### 🐛 Bug Fixes
+
+- Improve catching of nuXmv errors
+
+### 📚 Documentation
+
+- Add repository to project.toml
+
 ## [0.5.1] - 2024-10-23
 
 ### 📚 Documentation
